@@ -10,6 +10,7 @@ export async function generateMetadata(props: { params: Promise<{ mdxPath?: stri
   return metadata;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Wrapper = getMDXComponents({}).wrapper as any;
 
 export default async function Page(props: { params: Promise<{ mdxPath?: string[] }> }) {
@@ -17,9 +18,7 @@ export default async function Page(props: { params: Promise<{ mdxPath?: string[]
   const { default: MDXContent, toc, metadata, sourceCode } = await importPage(params.mdxPath);
   return (
     <Wrapper toc={toc} metadata={metadata} sourceCode={sourceCode}>
-      {/* @ts-expect-error mdx component */}
       <MDXContent {...props} params={params} />
-      dasdas
     </Wrapper>
   );
 }
