@@ -7,6 +7,12 @@ const withNextra = nextra({
 });
 
 export default withNextra({
-  // Regular Next.js config here
-  // Optional: fix for Turbopack + mdx-components path (see Step 4 note)
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+      },
+    ],
+  }
 });

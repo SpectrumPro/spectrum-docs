@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Optional: import Nextra theme styles */
+@import 'nextra-theme-docs/style.css'; /* or nextra-theme-blog/style.css */
+ 
+@variant dark (&:where(.dark *));
+
+
+html body {
+  height: 100%;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+.gradient-btn {
+    background-color: #ff595e;
+    animation: colorFade 32s linear infinite; /* linear = smooth fade */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes colorFade {
+    0%   { background-color: #ff595e; }
+    12.5%  { background-color: #ff924c; }
+    25%  { background-color: #ffca3a; }
+    37.5%  { background-color: #8ac926; }
+    50%  { background-color: #52a675; }
+    62.5%  { background-color: #1982c4; }
+    75%  { background-color: #4267ac; }
+    87.5%  { background-color: #6a4c93; }
+    100% { background-color: #ff595e; } /* same as start to loop smoothly */
 }
