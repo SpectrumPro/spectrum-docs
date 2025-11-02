@@ -1,0 +1,106 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from "react";
+
+type Asset = {
+	id: number;
+	name: string;
+	browser_download_url: string;
+	size: number; // size in bytes
+};
+
+type Release = {
+	id: number;
+	tag_name: string;
+	name: string;
+	published_at: string;
+	assets: Asset[];
+};
+
+type LatestReleaseTableProps = {
+	org: string;
+	repo: string;
+	title: string;
+};
+
+async function fetchReleases(owner: string, repo: string): Promise<Release[]> {
+	const url = `https://api.github.com/repos/${owner}/${repo}/releases`;
+
+	const res = await fetch(url, {
+		next: { revalidate: 3600 },
+	});
+
+	if (!res.ok) {
+		throw new Error(`GitHub API error: ${res.status}`);
+	}
+
+	const data = (await res.json()) as any[];
+	return data.map((r) => ({
+		id: r.id,
+		tag_name: r.tag_name,
+		name: r.name,
+		published_at: r.published_at,
+		assets: r.assets.map((a: any) => ({
+			id: a.id,
+			name: a.name,
+			browser_download_url: a.browser_download_url,
+			size: a.size,
+		})),
+	}));
+}
+
+// helper to parse filename: {PKG_NAME}.{ARCH}.{OS}.{VERSION}
+function parseFilename(filename: string) {
+	const parts = filename.split(".");
+	if (parts.length < 4) return { os: "-", arch: "-" };
+	const arch = parts[1];
+	const os = parts[2];
+	return { os, arch };
+}
+
+export default async function LatestReleaseTable({ org, repo, title }: LatestReleaseTableProps) {
+	const releases = await fetchReleases(org, repo);
+	if (releases.length === 0) return <p>No releases found.</p>;
+
+	const latest = releases[0];
+
+	return (
+		<div className="relative overflow-x-auto shadow-lg sm:rounded-lg w-full max-w-4xl dark:shadow-neutral-800">
+			<table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+				<caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-neutral-900">
+					{title}
+					<p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
+						{latest.name || latest.tag_name} {new Date(latest.published_at).toLocaleDateString()}
+					</p>
+				</caption>
+				<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-neutral-800 dark:text-gray-400">
+					<tr>
+						<th scope="col" className="px-6 py-3">Operating System</th>
+						<th scope="col" className="px-6 py-3">Architecture</th>
+						<th scope="col" className="px-6 py-3">Size</th>
+						<th scope="col" className="px-6 py-3">Download</th>
+					</tr>
+				</thead>
+				<tbody>
+					{latest.assets.map((asset) => {
+						const { os, arch } = parseFilename(asset.name);
+						return (
+							<tr key={asset.id} className="bg-white border-b dark:bg-neutral-900 dark:border-neutral-700 border-gray-200">
+								<td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{os}</td>
+								<td className="px-6 py-4">{arch}</td>
+								<td className="px-6 py-4">{Math.round(asset.size / 1024 / 1024)} MB</td>
+								<td className="px-6 py-4">
+									<a
+										href={asset.browser_download_url}
+										className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+									>
+										Download
+									</a>
+								</td>
+							</tr>
+						);
+					})}
+				</tbody>
+			</table>
+		</div>
+	);
+}

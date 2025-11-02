@@ -1,6 +1,6 @@
 export default function Page() {
 	return (
-		<section className="flex flex-col justify-center items-center min-h-screen px-4">
+		<section className="flex flex-col justify-center items-center min-h-screen px-4">			
 			<div className="grid max-w-screen-lg w-full mx-auto lg:grid-cols-2 gap-8 items-center">
 				<div className="text-center lg:text-left">
 					<h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight text-gray-900 dark:text-white">
