@@ -1,1 +1,176 @@
-# Constellation
+import { Callout } from 'nextra/components'
+ 
+# Constellation Network Protocol  
+
+<Callout type="warning">
+    Constellation, and its accompanying documentation are still in beta
+</Callout>
+
+*Introduction & Overview*
+
+The **Constellation Network Protocol (ConstaNet)** is a lightweight, device-to-device communication system designed for real-time distributed control.  
+It allows controllers, execution nodes, relays, and interactive devices to discover each other, synchronize state, exchange commands, form sessions, and negotiate capabilities.
+
+Constellation uses **dynamic port assignment**, allowing multiple Constellation nodes to operate on the same physical device and network interface without conflict.
+
+---
+
+## High-Level Architecture
+
+ConstaNet operates as a **header + payload** protocol:
+
+- The **header** is defined by [`ConstaNetHeadder`](/constellation/packets/Headder)  
+- The **payload** is defined by the specific packet subtype (e.g., `ConstaNetDiscovery`, `ConstaNetCommand`, etc.)
+
+Communication is symmetrical — every node in the Constellation network can **send** and **receive** all packet types.
+
+---
+
+## Transport Model
+
+ConstaNet is transport-agnostic, but in typical deployments each node exposes:
+
+- One dynamically assigned **UDP port** for discovery and announcements  
+- One dynamically assigned **TCP port** for session and command communication  
+- UDP port **3823** for **multicast discovery** on: `239.38.23.1`
+
+### UDP is used for:
+- Multicast communication: `239.38.23.1:3823`
+- Communication between nodes when TCP is not available or not yet established
+- Lightweight, connectionless messaging
+
+### TCP is used for:
+- Communication between nodes participating in the same session
+- Ensuring message delivery and ordering
+- Detecting software crashes or node failures (TCP disconnect is treated as node offline)
+
+Typically, TCP connections are only established **once two nodes are in the same session**.  
+Both dynamically assigned ports are broadcast in `ConstaNetDiscovery` messages so nodes can connect to each other directly.
+
+---
+
+## Node Identity
+
+Each Constellation node has a globally unique **NodeID**, implemented as an ASCII UUID (36 bytes).  
+NodeIDs are encoded as fixed-size fields in many packet types to ensure predictable packet offsets.
+
+Examples include:
+
+- `origin_id` / `target_id` in the header  
+- Session membership lists (`ConstaNetSessionAnnounce`)  
+- Session master assignment (`ConstaNetSessionSetMaster`)  
+- Multipart identifiers (`ConstaNetMultiPart`)
+
+This allows nodes to maintain a stable identity independent of IP address, hardware changes, or dynamic network conditions.
+
+---
+
+## Packet Types
+
+ConstaNet defines a series of standardized packet structures under the `Type` enum.  
+Each serves a specific purpose and has a corresponding class responsible for encoding and decoding.
+
+### **Discovery & Presence**
+Used for network visibility:
+- `ConstaNetDiscovery`
+- `ConstaNetGoodbye`
+- `ConstaNetHeartbeat`
+
+### **Command & Control**
+Used to exchange command and control information:
+- `ConstaNetCommand`
+- `ConstaNetSetAttribute`
+
+### **Multipart Transfer**
+Used when a payload exceeds the size limits of a single packet:
+- `ConstaNetMultiPart`
+
+### **Session Management**
+Used to create, update, and manage sessions:
+- `ConstaNetSessionAnnounce`
+- `ConstaNetSessionDiscovery`
+- `ConstaNetSessionJoin`
+- `ConstaNetSessionLeave`
+- `ConstaNetSessionSetMaster`
+- `ConstaNetSessionSetPriority`
+
+These packet types enable Constellation to function as a dynamic, decentralized network where nodes can appear, disappear, form sessions, and negotiate responsibilities in real time.
+
+---
+
+## Message Encoding
+
+ConstaNet supports two encoding formats:
+
+### Binary Encoding *(primary)*
+This is the default and preferred encoding method.  
+Binary encoding provides:
+
+- Smaller packet sizes  
+- Predictable offsets  
+- Efficient parsing  
+- Stream-friendly reading for TCP
+
+See [`ConstaNetHeadder`](/constellation/packet/Headder) for binary format details.
+
+### JSON String Encoding *(secondary)*  
+ConstaNet messages may also be encoded as JSON strings for tools, debugging, or external integrations.  
+However, JSON is **not used for normal network transport**, due to:
+
+- Larger packet size  
+- Slower parsing  
+- Unpredictable behavior when streamed across TCP
+- Lack of fixed offsets
+
+---
+
+## Communication Flow
+
+A typical Constellation network interaction follows this sequence:
+
+1. **Nodes appear on the network**, multicasting a `ConstaNetDiscovery` packet with `Flags.REQUEST`, containing:  
+   - Node name  
+   - NodeID  
+   - UDP and TCP dynamic ports  
+
+2. Other nodes respond with `ConstaNetDiscovery` `Flags.ACKNOWLEDGMENT` and create a local representation of the remote node.
+
+3. Nodes create and join **sessions** using `ConstaNetSessionAnnounce` and `ConstaNetSessionJoin`.  
+
+4. The session assigns or updates the **session master** (via `ConstaNetSessionSetMaster`).  
+
+5. Real-time control is executed using `ConstaNetCommand` packets.  
+
+6. Large payloads (assets, configuration data, etc.) may be transferred using `ConstaNetMultiPart` *(UDP only)*.  
+
+7. When nodes leave the network, they multicast `ConstaNetGoodbye` so others can update their internal state.
+
+This communication model supports both **decentralized networks** and **controller–executor hierarchies**.
+
+---
+
+## Extensibility
+
+ConstaNet is designed for easy expansion:
+
+To add a new packet type:
+1. Define a new packet class extending `ConstaNetHeadder`.  
+2. Add the new type to `ClassTypes` in the header.  
+3. Implement:
+   - `_get_as_packet`
+   - `_phrase_packet`
+   - `_is_valid`
+
+Unknown packet types are ignored gracefully by existing nodes.
+
+This design makes Constellation suitable for automation tools, device-specific extensions, custom protocols, interactive installations, and scalable media systems.
+
+---
+
+## Summary
+
+ConstaNet provides a **reliable**, **extensible**, and **efficient** foundation for real-time multi-device control.  
+It manages device discovery, command execution, session logic, and data interchange using a consistent, well-defined packet architecture.
+
+The following pages document each packet type and the binary data formats used throughout Constellation.
+
