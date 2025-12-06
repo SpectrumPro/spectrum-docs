@@ -1,0 +1,56 @@
+# `ConstaNetSetAttribute`
+[ConstaNetSetAttribute.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetSetAttribute.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetSetAttribute` is the packet type used to update attributes on remote Constellation Network devices.  
+It can be used to rename devices, change IP configuration (where supported), or instruct devices to join a specific session.
+
+---
+
+## Enumerations
+
+### `Attribute`
+
+Defines which attribute is being modified by this packet.
+
+| Enum       | Description                                        |
+|------------|----------------------------------------------------|
+| `UNKNOWN`  | Default/uninitialized state.                       |
+| `NAME`     | Sets the human-readable name of the device.       |
+| `IP_ADDR`  | Sets the IP address of a supported device.        |
+| `SESSION`  | Instructs the device to join the given session.   |
+
+---
+
+## Member Variables
+
+### `attribute`
+
+*DataType:* `Attribute`  
+*Default:* `Attribute.UNKNOWN`  
+The attribute to modify on the target device.  
+This determines how the receiving node interprets the `value` field.
+
+---
+
+### `value`
+
+*DataType:* `String`  
+*Default:* `""`  
+The new value to apply to the specified attribute.  
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type      | Field          |
+|--------|-----------|----------------|
+| 0      | `uint16`  | Attribute type |
+| 2      | `string`  | Value          |

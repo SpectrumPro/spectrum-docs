@@ -1,0 +1,33 @@
+# `ConstaNetGoodbye`
+[ConstaNetGoodbye.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetGoodbye.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetGoodbye` is the packet type used by Constellation Network nodes to announce that they are disconnecting from the network.  
+This packet is typically broadcast before shutdown or when transitioning offline, allowing other nodes to gracefully update their internal state.
+
+---
+
+## Member Variables
+
+### `reason`
+
+*DataType:* `String`  
+*Default:* `"Unknown"`  
+Human-readable explanation for why the node is leaving the network.  
+This may be displayed in UI or logs by peer nodes.
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type        | Field          |
+|--------|-------------|----------------|
+| 0      | `String`    | Reason text  |
+

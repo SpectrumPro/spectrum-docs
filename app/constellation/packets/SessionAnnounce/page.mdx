@@ -1,0 +1,72 @@
+# `ConstaNetSessionAnnounce`
+[ConstaNetSessionAnnounce.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetSessionAnnounce.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetSessionAnnounce` is the packet type used by Constellation Network nodes to announce the existence and composition of a session.  
+It declares the session identifier, the current master node, a human-readable session name, and the list of participating nodes.
+
+---
+
+## Member Variables
+
+### `session_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+The SessionID of this session.  
+All packets related to this session should reference the same `session_id`.
+
+---
+
+### `session_master`
+
+*DataType:* `String`  
+*Default:* `""`  
+The `NodeID` of the node currently acting as the session master.  
+This node is typically responsible for authoritative control and coordination.
+
+---
+
+### `session_name`
+
+*DataType:* `String`  
+*Default:* `""`  
+Human-readable name of the session, suitable for display in user interfaces.  
+
+---
+
+### `nodes`
+
+*DataType:* `Array[String]`  
+*Default:* `[]`  
+List of all `NodeID`s currently participating in this session.  
+Each entry is a string-encoded UUID corresponding to a Constellation node.
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset   | Type        | Field                |
+|----------|-------------|----------------------|
+| 0        | `NodeID`    | Session ID           |
+| 36       | `NodeID`    | Session master ID    |
+| 72       | `uint16`    | Session name length  |
+| 74       | `string`    | Session name         |
+| 74+M     | `uint16`    | Node count           |
+| 76+M     | `NodeID[]`  | Session node IDs     |
+
+Where:
+
+- `NodeID` is a 36-byte ASCII UUID (see DataTypes).  
+- `Session name length` is the byte length of the ASCII-encoded session name.  
+- `M` is the number of bytes in the session name string.  
+- `Node count` is the number of entries in `nodes`.  
+- `Session node IDs` is a sequence of `NodeID` entries, one for each node.
+

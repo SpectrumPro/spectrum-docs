@@ -1,0 +1,32 @@
+# `ConstaNetSessionDiscovery`
+[ConstaNetSessionDiscovery.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetSessionDiscovery.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetSessionDiscovery` is the packet type used by Constellation Network nodes to request that other nodes announce their active sessions.  
+When a node sends this message, peers are expected to respond with [`ConstaNetSessionAnnounce`](./ConstaNetSessionAnnounce.gd) packets describing the sessions they host or participate in.
+
+This packet carries **no additional payload** beyond the standard ConstaNet header.
+
+---
+
+## Member Variables
+
+This packet defines no additional member variables beyond those inherited from [`ConstaNetHeadder`](./ConstaNetHeadder.gd).
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type | Field |
+|--------|------|-------|
+| -      | -    | No payload fields |
+
+The `ConstaNetSessionDiscovery` packet uses only the base header; there is no message-specific payload body for this type.
+

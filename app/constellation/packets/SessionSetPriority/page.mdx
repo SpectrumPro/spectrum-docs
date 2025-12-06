@@ -1,0 +1,56 @@
+# `ConstaNetSessionSetPriority`
+[ConstaNetSessionSetPriority.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetSessionSetPriority.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetSessionSetPriority` is the packet type used to reorder nodes within a session’s failover or execution priority list.  
+This packet instructs the session master or controller to move a specific node to a new priority position.
+
+---
+
+## Member Variables
+
+### `session_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+The SessionID whose priority ordering is being modified.  
+
+---
+
+### `node_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+The `NodeID` of the node being repositioned in the session’s priority order.  
+
+---
+
+### `position`
+
+*DataType:* `int`  
+*Default:* `-1`  
+The new priority index to apply to the specified node.  
+A value of `0` represents the highest priority; valid values must be >= 0.
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type     | Field            |
+|--------|----------|------------------|
+| 0      | `NodeID` | Session ID       |
+| 36     | `NodeID` | Target node ID   |
+| 72     | `uint16` | New position     |
+
+Where:
+
+- Each `NodeID` is a 36-byte ASCII UUID string.  
+- `New position` is a 2-byte big-endian unsigned integer.
+

@@ -1,0 +1,47 @@
+# `ConstaNetSessionSetMaster`
+[ConstaNetSessionSetMaster.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetSessionSetMaster.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetSessionSetMaster` is the packet type used to assign a new master node for a given session.  
+This message is typically issued by controllers or administrative nodes to update session leadership.
+
+---
+
+## Member Variables
+
+### `session_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+Identifier of the session whose master is being reassigned.  
+Encoded as a fixed-length ASCII `NodeID` buffer in the packet payload.
+
+---
+
+### `node_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+The `NodeID` of the node that will become the new session master.  
+Also encoded as a fixed-length ASCII `NodeID` buffer.
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type     | Field        |
+|--------|----------|--------------|
+| 0      | `NodeID` | Session ID   |
+| 36     | `NodeID` | New master ID |
+
+Where:
+
+- Each `NodeID` is a 36-byte ASCII UUID string.  
+

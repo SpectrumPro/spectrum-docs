@@ -1,0 +1,57 @@
+# `ConstaNetCommand`
+[ConstaNetCommand.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetCommand.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetCommand` represents a control command issued within the Constellation Network Engine.  
+Commands may target specific nodes or sessions and may contain arbitrary typed data serialized into binary form.  
+This packet type is typically used for lighting cues, execution triggers, or other real-time control actions.
+
+---
+
+## Member Variables
+
+### `data_type`
+
+*DataType:* `int`  
+*Default:* `TYPE_NIL`  
+Godot Variant type ID describing the datatype of the encoded command payload.  
+Used to correctly reconstruct the `command` value on remote nodes.
+
+---
+
+### `command`
+
+*DataType:* `Variant`  
+*Default:* `null`  
+The actual command payload.  
+This may be any Godot Variant (int, float, bool, String, Dictionary, Array, etc.).  
+Serialized using `var_to_bytes` for transport, and reconstructed remotely using `bytes_to_var`.
+
+---
+
+### `in_session`
+
+*DataType:* `String`  
+*Default:* `""`  
+The SessionID this command belongs to.  
+If empty, the command is not session-scoped.
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type         | Field               |
+|--------|--------------|---------------------|
+| 0      | `uint16`     | Data type ID        |
+| 6      | `ByteArray`  | Command payload     |
+| 6+N    | `NodeID`     | Session ID          |
+
+Where **N** is the number of bytes in the serialized command payload.  
+

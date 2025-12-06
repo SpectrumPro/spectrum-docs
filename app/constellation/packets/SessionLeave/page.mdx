@@ -1,0 +1,37 @@
+# `ConstaNetSessionLeave`
+[ConstaNetSessionLeave.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetSessionLeave.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetSessionLeave` is the packet type used by Constellation Network nodes to indicate that they are leaving a session.  
+Nodes send this message so that the session master or controller can update participation lists and possibly trigger failover logic.
+
+---
+
+## Member Variables
+
+### `session_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+The unique SessionID the node is leaving.  
+Encoded as a fixed-length ASCII `NodeID` buffer within the packet payload.
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type     | Field        |
+|--------|----------|--------------|
+| 0      | `NodeID` | Session ID   |
+
+Where:
+
+- `NodeID` is a 36-byte ASCII UUID string.
+

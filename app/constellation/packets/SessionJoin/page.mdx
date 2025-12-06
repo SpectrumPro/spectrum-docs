@@ -1,0 +1,37 @@
+# `ConstaNetSessionJoin`
+[ConstaNetSessionJoin.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetSessionJoin.gd)  
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetSessionJoin` is the packet type used by Constellation Network nodes to indicate that they are joining a particular session.  
+A joining node announces its intent by providing the target SessionID. Session controllers or masters may update internal state or respond with session details.
+
+---
+
+## Member Variables
+
+### `session_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+The unique SessionID identifying the session the node wishes to join.  
+Encoded as a fixed-length ASCII `NodeID` buffer in the packet payload.
+
+---
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).  
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type     | Field        |
+|--------|----------|--------------|
+| 0      | `NodeID` | Session ID   |
+
+Where:
+
+- `NodeID` is a 36-byte ASCII UUID string (see DataTypes for details).  
+

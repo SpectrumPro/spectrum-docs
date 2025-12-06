@@ -1,0 +1,417 @@
+# `ConstaNetHeadder`
+[ConstaNetHeadder.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetHeadder` is the base class for all Constellation Network Engine message headers.  
+It provides message typing, flags, origin/target addressing, packet serialization, and deserialization utilities. Subclasses implement specific ConstaNet message types.
+
+---
+
+## Constants
+
+| Name                  | Type | Value | Description                                                  |
+|-----------------------|------|-------|--------------------------------------------------------------|
+| `VERSION`             | int  | 1     | Current ConstaNet protocol version.                          |
+| `NODE_ID_LENGTH`      | int  | 36    | Required byte length of a UUID-based `NodeID` (ASCII).       |
+| `HEADDER_LENGTH_NO_ID`| int  | 14    | Header size without origin/target `NodeID`s.                 |
+| `HEADDER_LENGTH`      | int  | 86    | Full header size including both `NodeID`s.                   |
+
+---
+
+## Enumerations
+
+### Type
+
+Defines the ConstaNet packet type.
+
+| Enum                | Description                                      |
+|---------------------|--------------------------------------------------|
+| `UNKNOWN`           | Default/uninitialized state.                     |
+| `DISCOVERY`         | Broadcast query: “Who's there?”.                 |
+| `GOODBYE`           | Node going offline.                              |
+| `COMMAND`           | Control or cue message.                          |
+| `MULTI_PART`        | Multipart message transport.                     |
+| `SET_ATTRIBUTE`     | Modify node metadata.                            |
+| `STATE_REQUEST`     | Request a full state synchronization.            |
+| `HEARTBEAT`         | Periodic alive signal.                           |
+| `SESSION_ANNOUNCE`  | Announces a new session.                         |
+| `SESSION_DISCOVERY` | Requests nodes to announce their sessions.       |
+| `SESSION_JOIN`      | Node joining a session.                          |
+| `SESSION_LEAVE`     | Node leaving a session.                          |
+| `SESSION_SET_PRIORITY` | Sets node failover priority.                 |
+| `SESSION_SET_MASTER`   | Assigns a node as the session master.        |
+| `SYS_EXCLUSIVE`     | Vendor-specific or extended data payload.        |
+
+---
+
+### Flags
+
+Defines the intentions of the message.
+
+| Flag            | Value | Description                                            |
+|-----------------|--------|--------------------------------------------------------|
+| `NONE`          | `0x00` | No flags.                                              |
+| `REQUEST`       | `0x01` | Message requests a response.                           |
+| `ACKNOWLEDGMENT`| `0x02` | Message is a response to a prior request.             |
+| `ERROR`         | `0x04` | Message contains an error condition.                  |
+| `ANNOUNCEMENT`  | `0x08` | Message contains new or updated information.          |
+| `RETRANSMISSION`| `0x10` | Message has been retransmitted (typically via a relay).|
+
+---
+
+### RoleFlags
+
+Defines the abilities of a node.
+
+| Flag        | Description                                   |
+|-------------|-----------------------------------------------|
+| `NONE`      | No role flags assigned.                       |
+| `EXECUTOR`  | Executes actions issued by a `CONTROLLER`.    |
+| `CONTROLLER`| Issues control/command messages to executors. |
+
+---
+
+## Member Variables
+
+### `type`
+
+*DataType:* `Type`  
+*Default:* `Type.UNKNOWN`  
+The type of this message. See [Type](#type).
+
+---
+
+### `flags`
+
+*DataType:* `Flags`  
+*Default:* `Flags.NONE`  
+Bitmask flags defining the intentions of this message. See [Flags](#flags).
+
+---
+
+### `origin_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+UUID of the node this message originates from.
+
+---
+
+### `target_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+UUID of the node this message is targeting, or empty if this message is broadcast / multicast.
+
+---
+
+## Public API
+
+### `get_as_dict`
+
+*Args:* `null`  
+*Returns:* `Dictionary`  
+
+Returns a dictionary describing the header plus subclass-specific data.  
+Subclasses can add fields via [`_get_as_dict`](#_get_as_dict).
+
+---
+
+### `get_as_string`
+
+*Args:* `null`  
+*Returns:* `String`  
+
+Stringifies the dictionary representation. See [`get_as_dict`](#get_as_dict).
+
+---
+
+### `get_as_packet`
+
+*Args:* `null`  
+*Returns:* `PackedByteArray`  
+
+Serializes the header and message body into a ConstaNet packet ready for transmission.  
+See [Packet Structure](#packet-structure)
+
+---
+
+### `get_origin_as_buffer`
+
+*Args:* `null`  
+*Returns:* `PackedByteArray`  
+
+Returns [`origin_id`](#origin_id) as a `PackedByteArray`, padded or trimmed to `NODE_ID_LENGTH`.
+
+---
+
+### `get_target_as_buffer`
+
+*Args:* `null`  
+*Returns:* `PackedByteArray`  
+
+Returns [`target_id`](#target_id) as a `PackedByteArray`, padded or trimmed to `NODE_ID_LENGTH`.
+
+---
+
+### `get_id_as_buffer`
+
+*Args:* `String: p_id`  
+*Returns:* `PackedByteArray`  
+
+Returns `p_id` as a `PackedByteArray`. The resulting array always has a fixed length of `NODE_ID_LENGTH`; data will be trimmed or padded with zeros to reach this length.
+
+---
+
+### `is_valid`
+
+*Args:* `null`  
+*Returns:* `bool`  
+
+Checks if the message is valid. Returns `true` if:
+
+- [`type`](#type) is not `Type.UNKNOWN`  
+- [`origin_id`](#origin_id) is present  
+- The decoded version matches the current protocol version (only if this message was decoded from JSON or binary)  
+- Subclass [`_is_valid`](#_is_valid) returns `true`  
+
+---
+
+### `set_request`
+
+*Args:* `bool: p_request`  
+*Returns:* `void`  
+
+Sets or clears the `Flags.REQUEST` flag.
+
+---
+
+### `set_acknowledgment`
+
+*Args:* `bool: p_acknowledgment`  
+*Returns:* `void`  
+
+Sets or clears the `Flags.ACKNOWLEDGMENT` flag.
+
+---
+
+### `set_error`
+
+*Args:* `bool: p_error`  
+*Returns:* `void`  
+
+Sets or clears the `Flags.ERROR` flag.
+
+---
+
+### `set_announcement`
+
+*Args:* `bool: p_announcement`  
+*Returns:* `void`  
+
+Sets or clears the `Flags.ANNOUNCEMENT` flag.
+
+---
+
+### `set_retransmission`
+
+*Args:* `bool: p_retransmission`  
+*Returns:* `void`  
+
+Sets or clears the `Flags.RETRANSMISSION` flag.
+
+---
+
+### `is_request`
+
+*Args:* `null`  
+*Returns:* `bool`  
+
+Checks if the `Flags.REQUEST` flag is set.
+
+---
+
+### `is_acknowledgment`
+
+*Args:* `null`  
+*Returns:* `bool`  
+
+Checks if the `Flags.ACKNOWLEDGMENT` flag is set.
+
+---
+
+### `is_error`
+
+*Args:* `null`  
+*Returns:* `bool`  
+
+Checks if the `Flags.ERROR` flag is set.
+
+---
+
+### `is_announcement`
+
+*Args:* `null`  
+*Returns:* `bool`  
+
+Checks if the `Flags.ANNOUNCEMENT` flag is set.
+
+---
+
+### `is_retransmission`
+
+*Args:* `null`  
+*Returns:* `bool`  
+
+Checks if the `Flags.RETRANSMISSION` flag is set.
+
+---
+
+## Message Decoding
+
+### `phrase_dict`
+
+*Args:* `Dictionary: p_dict`  
+*Returns:* `ConstaNetHeadder`  
+
+Decodes a ConstaNet message from a `Dictionary` object (e.g. parsed JSON).  
+Automatically selects the correct subclass based on the encoded message type.
+
+---
+
+### `phrase_string`
+
+*Args:* `String: p_string`  
+*Returns:* `ConstaNetHeadder`  
+
+Decodes a ConstaNet message from a JSON string.  
+Internally, parses the JSON into a `Dictionary` and forwards to [`phrase_dict`](#phrase_dict).
+
+---
+
+### `phrase_packet`
+
+*Args:* `PackedByteArray: p_packet`  
+*Returns:* `ConstaNetHeadder`  
+
+Decodes a ConstaNet message from a raw binary buffer.  
+Validates the header (version, length, type, etc.) and constructs the correct subclass instance based on the message type. The remaining bytes (after the header) are passed to [`_phrase_packet`](#_phrase_packet) of the subclass.
+
+---
+
+## Overridable Methods (for subclasses)
+
+These methods are intended to be implemented by subclasses that define specific packet payloads.
+
+### `_get_as_dict`
+
+*Args:* `null`  
+*Returns:* `Dictionary`  
+
+Allows the subclass to encode its own data fields into a `Dictionary`.  
+The result is merged into the base header dictionary returned by [`get_as_dict`](#get_as_dict).
+
+---
+
+### `_get_as_packet`
+
+*Args:* `null`  
+*Returns:* `PackedByteArray`  
+
+Allows the subclass to encode its payload data into a `PackedByteArray`.  
+The returned data is appended after the header in [`get_as_packet`](#get_as_packet).
+
+---
+
+### `_phrase_dict`
+
+*Args:* `Dictionary: p_dict`  
+*Returns:* `void`  
+
+Allows the subclass to decode its data fields from a `Dictionary`.  
+`p_dict` contains the full deserialized message (header + payload).
+
+---
+
+### `_phrase_packet`
+
+*Args:* `PackedByteArray: p_packet`  
+*Returns:* `void`  
+
+Allows the subclass to decode its data fields from a `PackedByteArray`.  
+Note: `p_packet` does **not** contain any information from the header; it is the body portion only.
+
+---
+
+### `_is_valid`
+
+*Args:* `null`  
+*Returns:* `bool`  
+
+Allows the subclass to validate its data.  
+Called by [`is_valid`](#is_valid) after the base header checks have passed.
+
+---
+
+## Utility Functions
+
+### `ba`
+
+*Args:* `int: p_value`, `int: p_byte_count`  
+*Returns:* `PackedByteArray`  
+
+Converts `p_value` into a big-endian `PackedByteArray`, where `p_byte_count` specifies how many bytes to use for encoding.  
+For the opposite operation, see [`ba_to_int`](#ba_to_int).
+
+---
+
+### `ba_to_int`
+
+*Args:* `PackedByteArray: p_packet`, `int: p_offset`, `int: p_byte_count`  
+*Returns:* `int`  
+
+Reads big-endian integer data out of `p_packet`.  
+
+- `p_offset` is the byte offset to start reading from.  
+- `p_byte_count` specifies the number of bytes to decode.  
+
+For the opposite operation, see [`ba`](#ba).
+
+---
+
+### `ip_to_bytes`
+
+*Args:* `String: p_ip`  
+*Returns:* `PackedByteArray`  
+
+Converts an IP address string into a `PackedByteArray`.  
+Note: IPv4 only is supported.
+
+---
+
+### `bytes_to_ip`
+
+*Args:* `PackedByteArray: p_bytes`  
+*Returns:* `String`  
+
+Converts a `PackedByteArray`-encoded IP address into a string IP address.  
+Note: IPv4 only is supported.
+
+---
+
+## Packet Structure
+
+Header layout (big-endian). See [DataTypes](/constellation/datatypes).
+
+| Offset | Type    | Field            |
+|--------|---------|------------------|
+| 0      | `uint16`| Version          |
+| 1      | `uint64`| Message length   |
+| 9      | `uint16`| Message type     |
+| 11     | `uint16`| Message flags    |
+| 13     | `NodeID`| Origin Node ID   |
+| 49     | `NodeID`| Target Node ID   |
+| 85+    | ...     | Message body     |

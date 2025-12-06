@@ -1,0 +1,61 @@
+import { Table } from 'nextra/components'
+
+# Data Types
+
+The following data types are used in ConstaNet messages
+
+<br/>
+
+<Table>
+  <thead>
+    <Table.Tr>
+      <Table.Th>Name</Table.Th>
+      <Table.Th>Real Type</Table.Th>
+      <Table.Th>Notes</Table.Th>
+      <Table.Th>Size (Bytes)</Table.Th>
+    </Table.Tr>
+  </thead>
+  <tbody>
+    <Table.Tr>
+      <Table.Td>uint8</Table.Td>
+      <Table.Td>uint8</Table.Td>
+      <Table.Td/>
+      <Table.Td>1</Table.Td>
+    </Table.Tr>
+
+    <Table.Tr>
+      <Table.Td>uint16</Table.Td>
+      <Table.Td>uint16 (big-endian)</Table.Td>
+      <Table.Td/>
+      <Table.Td>2</Table.Td>
+    </Table.Tr>
+
+    <Table.Tr>
+      <Table.Td>uint64</Table.Td>
+      <Table.Td>uint64 (big-endian)</Table.Td>
+      <Table.Td/>
+      <Table.Td>8</Table.Td>
+    </Table.Tr>
+
+    <Table.Tr>
+      <Table.Td>NodeID</Table.Td>
+      <Table.Td>ASCII byte sequence</Table.Td>
+      <Table.Td>UUID v4 identifier</Table.Td>
+      <Table.Td>36</Table.Td>
+    </Table.Tr>
+
+    <Table.Tr>
+      <Table.Td>String</Table.Td>
+      <Table.Td>ASCII byte sequence</Table.Td>
+      <Table.Td>2-byte uint16 length prefix</Table.Td>
+      <Table.Td>-</Table.Td>
+    </Table.Tr>
+
+    <Table.Tr>
+      <Table.Td>ByteArray</Table.Td>
+      <Table.Td>raw bytes</Table.Td>
+      <Table.Td>2-byte uint16 length prefix</Table.Td>
+      <Table.Td>-</Table.Td>
+    </Table.Tr>
+  </tbody>
+</Table>

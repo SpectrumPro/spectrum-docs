@@ -1,0 +1,70 @@
+# `ConstaNetDiscovery`
+[ConstaNetDiscovery.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/packets/ConstaNetDiscovery.gd)
+*Extends:* [ConstaNetHeadder](./ConstaNetHeadder.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstaNetDiscovery` is the packet type used by Constellation Network nodes to announce their presence, capabilities, and connection endpoints.  
+It is typically broadcast on the local network so other nodes can discover available devices and their roles.
+
+
+## Member Variables
+
+### `node_name`
+
+*DataType:* `String`  
+*Default:* `"UnNamedNode"`  
+Human-readable name of the origin node. Used to identify devices on the network.
+
+---
+
+### `node_ip`
+
+*DataType:* `String`  
+*Default:* `""`  
+IPv4 address of the origin node, encoded from or into a `PackedByteArray` via the shared utility functions  
+See: [`ip_to_bytes`](#ip_to_bytes) and [`bytes_to_ip`](#bytes_to_ip).
+
+---
+
+### `role_flags`
+
+*DataType:* `int`  
+*Default:* `RoleFlags.EXECUTOR`  
+Bitmask representing the node’s capabilities.  
+See: [RoleFlags](./ConstaNetHeadder.md#roleflags).
+
+---
+
+### `tcp_port`
+
+*DataType:* `int`  
+*Default:* `0`  
+The TCP port this node listens on for session-level control and high-reliability communication.
+
+---
+
+### `udp_port`
+
+*DataType:* `int`  
+*Default:* `0`  
+The UDP port this node listens on for lightweight or real-time packets (e.g., discovery, heartbeats).
+
+---
+
+
+## Packet Structure
+
+Offsets below refer to the **payload portion** (after the base header defined in [`ConstaNetHeadder`](./ConstaNetHeadder.gd)).\
+See [DataTypes](/constellation/datatypes).
+
+| Offset | Type        | Field         |
+|--------|-------------|---------------|
+| 0      | `uint8`     | Name length   |
+| 1      | `string`    | Node name     |
+| N      | `uint8[4]`  | IPv4 address  |
+| N+4    | `uint16`    | Role flags    |
+| N+6    | `uint16`    | TCP port      |
+| N+8    | `uint16`    | UDP port      |
