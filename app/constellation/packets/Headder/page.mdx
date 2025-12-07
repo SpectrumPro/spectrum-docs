@@ -363,7 +363,7 @@ Called by [`is_valid`](#is_valid) after the base header checks have passed.
 *Args:* `int: p_value`, `int: p_byte_count`  
 *Returns:* `PackedByteArray`  
 
-Converts `p_value` into a big-endian `PackedByteArray`, where `p_byte_count` specifies how many bytes to use for encoding.  
+Converts `p_value` into a little-endian `PackedByteArray`, where `p_byte_count` specifies how many bytes to use for encoding.  
 For the opposite operation, see [`ba_to_int`](#ba_to_int).
 
 ---
@@ -373,7 +373,7 @@ For the opposite operation, see [`ba_to_int`](#ba_to_int).
 *Args:* `PackedByteArray: p_packet`, `int: p_offset`, `int: p_byte_count`  
 *Returns:* `int`  
 
-Reads big-endian integer data out of `p_packet`.  
+Reads little-endian integer data out of `p_packet`.  
 
 - `p_offset` is the byte offset to start reading from.  
 - `p_byte_count` specifies the number of bytes to decode.  
@@ -404,7 +404,7 @@ Note: IPv4 only is supported.
 
 ## Packet Structure
 
-Header layout (big-endian). See [DataTypes](/constellation/datatypes).
+Header layout (little-endian). See [DataTypes](/constellation/datatypes).
 
 | Offset | Type    | Field            |
 |--------|---------|------------------|

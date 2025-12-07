@@ -64,6 +64,6 @@ See [DataTypes](/constellation/datatypes).
 Where:
 
 - **Multipart ID** is a 36-byte ASCII identifier, encoded in the same format as `NodeID`.  
-- **Data byte length** is a 4-byte big-endian integer specifying the size of the following chunk data.  
+- **Data byte length** is a 4-byte little-endian integer specifying the size of the following chunk data.  
 - **Chunk data** contains the raw bytes for this portion of the multipart message.
 
