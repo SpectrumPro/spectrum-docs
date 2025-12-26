@@ -3,4 +3,5 @@ export default {
 	"index": "Introduction",
 	"datatypes": "Data Types",
 	"packets": "Packets",
+	"class_refernce": "Class Refernce"
 };

@@ -1,0 +1,583 @@
+# `Constellation`
+[Constellation.gd](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/Constellation.gd)  
+*Extends:* `NetworkHandler`
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`Constellation` is the primary `NetworkHandler` implementation for the Constellation Network Engine.  
+It manages multicast discovery, dynamic UDP/TCP socket binding, node/session tracking, and packet routing for all ConstaNet message types.
+
+This class is responsible for:
+- Starting and stopping the network stack
+- Handling multicast discovery on `239.38.23.1:3823`
+- Maintaining local caches of known/unknown nodes and sessions
+- Creating and joining sessions
+- Routing received packets to the correct node/session handler
+- Reassembling multipart payloads (`ConstaNetMultiPart`)
+- Loading and persisting network configuration (`ConstellationConfig`)
+
+---
+
+## Signals
+
+### `ip_and_interface_changed`
+
+*Args:* `IPAddr: ipaddr`  
+Emitted when the current bind IP address or network interface has been changed via [`set_ip_and_interface`](#set_ip_and_interface).
+
+---
+
+## Constants
+
+| Name | Type | Value | Description |
+|------|------|-------|-------------|
+| `MCAST_GROUP` | `String` | `"239.38.23.1"` | Multicast group used for discovery and network announcements. |
+| `UDP_MCAST_PORT` | `int` | `3823` | UDP port used for multicast discovery. |
+| `DISCO_TIMEOUT` | `int` | `10` | Interval (seconds) between repeated discovery broadcasts while online. |
+| `SESSION_DISCO_WAIT_TIME` | `int` | `2` | Delay (seconds) before auto-creating a session if session discovery finds nothing. |
+| `MULTI_PART_MAX_WAIT` | `int` | `10` | Maximum time (seconds) to wait for remaining multipart chunks before dropping the message. |
+
+---
+
+## Public API
+
+### `start_node`
+
+*Args:* `null`  
+*Returns:* `Error`  
+
+Starts the Constellation node network stack. This includes:
+
+- Resetting internal state
+- Binding multicast, UDP, and TCP sockets
+- Registering the local node in the known node table
+- Beginning discovery and session discovery
+- Transitioning network state to `READY`
+
+Returns `OK` on success or an error code if startup fails.
+
+---
+
+### `stop_node`
+
+*Args:* `bool: p_internal_only = false`  
+*Returns:* `Error`  
+
+Stops the Constellation node and closes all sockets.  
+If `p_internal_only` is true, the multicast goodbye message will not be send out.
+
+This also:
+- Closes all known nodes and sessions
+- Clears sll unknown nodes and sessions
+- Stops timers
+- Sets the network state to `OFFLINE`
+
+---
+
+### `send_command`
+
+*Args:*  
+- `Variant: p_command`  
+- `NetworkSession.NodeFilter: p_node_filter = NetworkSession.NodeFilter.MASTER`  
+- `Array[NetworkNode]: p_nodes = []`  
+
+*Returns:* `Error`  
+
+Sends a command to the current session using the session’s routing rules.  
+Returns `ERR_UNAVAILABLE` if the local node is not currently in a session.
+
+---
+
+### `create_session`
+
+*Args:* `String: p_name`  
+*Returns:* `NetworkSession`  
+
+Creates a new session locally and immediately announces it via multicast.  
+The local node becomes session master.
+
+Returns the created session, or `null` if invalid input or network not ready.
+
+---
+
+### `join_session`
+
+*Args:* `NetworkSession: p_session`  
+*Returns:* `bool`  
+
+Joins an existing session. This will:
+
+- Leave the current session if already in one
+- Connect TCP to all nodes already in the session
+- Multicast a `ConstaNetSessionJoin` request
+- Assign the session to the local node
+
+Returns `true` on success.
+
+---
+
+### `leave_session`
+
+*Args:* `null`  
+*Returns:* `bool`  
+
+Leaves the current session. This will:
+
+- Multicast a `ConstaNetSessionLeave` request
+- Disconnect TCP from all nodes in the old session
+- Clear the local node’s session
+
+Returns `false` if not currently in a session.
+
+---
+
+### `set_ip_and_interface`
+
+*Args:* `IPAddr: p_ipaddr`  
+*Returns:* `void`  
+
+Sets the bind IP address and interface name used for multicast membership and socket binding.  
+Emits [`ip_and_interface_changed`](#ip_and_interface_changed) and persists the config.
+
+---
+
+### `get_ip_and_interface`
+
+*Args:* `null`  
+*Returns:* `IPAddr`  
+
+Returns the current bind address and interface name as an `IPAddr` object.
+
+---
+
+### `get_known_nodes`
+
+*Args:* `null`  
+*Returns:* `Array[NetworkNode]`  
+
+Returns a list of all known nodes currently tracked by the network handler.
+
+---
+
+### `get_unknown_nodes`
+
+*Args:* `null`  
+*Returns:* `Array[NetworkNode]`  
+
+Returns a list of nodes that have been referenced but not fully discovered.
+
+---
+
+### `get_known_sessions`
+
+*Args:* `null`  
+*Returns:* `Array[NetworkSession]`  
+
+Returns a list of all known sessions.
+
+---
+
+### `get_unknown_sessions`
+
+*Args:* `null`  
+*Returns:* `Array[NetworkSession]`  
+
+Returns a list of sessions that have been referenced but not fully discovered.
+
+---
+
+### `get_local_node`
+
+*Args:* `null`  
+*Returns:* `ConstellationNode`  
+
+Returns the local node object.
+
+---
+
+### `get_node_name`
+
+*Args:* `null`  
+*Returns:* `String`  
+
+Returns the current local node name.
+
+---
+
+### `get_node_id`
+
+*Args:* `null`  
+*Returns:* `String`  
+
+Returns the NodeID of the local node.
+
+---
+
+### `get_session_from_id`
+
+*Args:*  
+- `String: p_session_id`  
+- `bool: p_create_unknown = false`  
+
+*Returns:* `ConstellationSession`  
+
+Returns a session by ID if known.  
+If `p_create_unknown` is true, an unknown session instance may be created and stored until fully announced.
+
+---
+
+### `get_node_from_id`
+
+*Args:*  
+- `String: p_node_id`  
+- `bool: p_create_unknown = false`  
+
+*Returns:* `ConstellationNode`  
+
+Returns a node by NodeID if known.  
+If `p_create_unknown` is true, an unknown node instance may be created and stored until discovered.
+
+---
+
+### `get_node_array`
+
+*Args:*  
+- `ConstaNetSessionAnnounce: p_from`  
+- `bool: p_create_unknown = false`  
+
+*Returns:* `Array[ConstellationNode]`  
+
+Converts a `ConstaNetSessionAnnounce` message node list into a typed array of `ConstellationNode` instances.
+
+---
+
+## Command-Line Arguments
+*Constellation Network Engine*
+
+The Constellation Network Engine supports several command-line arguments that allow runtime configuration of node identity, network binding, and role selection.  
+These arguments are parsed during initialization of [`Constellation`](./Constellation.gd) and override values loaded from configuration files.
+
+Command-line arguments always take precedence over both engine defaults and user configuration values.
+
+---
+
+
+### `--ctl-node-name <name>`
+
+Overrides the configured local node name.
+
+- Updates `ConstellationConfig.node_name`
+- Reflected immediately in discovery packets and logs
+
+**Example:**
+
+```bash
+--ctl-node-name "Lighting Controller"
+```
+
+
+---
+
+### `--ctl-random-id`
+
+Generates a new random NodeID for this run only.
+
+- Replaces `ConstellationConfig.node_id` with a freshly generated UUID v4
+- The new ID is **not persisted** unless saved later via user config
+
+This is useful for running multiple nodes on the same machine without identity conflicts.
+
+---
+
+
+### `--ctl-address <ip>`
+
+Overrides the IP address Constellation binds to.
+
+- Updates `ConstellationConfig.bind_address`
+- Affects TCP, UDP, and multicast socket binding
+
+**Example:**
+
+```bash
+--ctl-address 192.168.1.42
+```
+
+---
+
+### `--ctl-interface <interface>`
+
+Overrides the network interface used for multicast group membership.
+
+- Updates `ConstellationConfig.bind_interface`
+- Must correspond to the interface routing traffic for `--ctl-address`
+
+**Example:**
+
+```bash
+--ctl-interface eth0
+```
+
+---
+
+
+### `--ctl-controler`
+
+Sets the node role to [`RoleFlags.CONTROLLER`](/constellation/packets/Headder#roleflags).
+
+- Updates internal role flags to `RoleFlags.CONTROLLER`
+- The node will issue commands and control messages
+- Typically used for operator consoles or automation controllers
+
+---
+
+### `--ctl-executor`
+
+Sets the node role to [`RoleFlags.EXECUTOR`](/constellation/packets/Headder#roleflags).
+
+- Updates internal role flags to `RoleFlags.EXECUTOR`
+- The node will execute commands issued by controllers
+- This is the default role if no role flag is specified
+
+---
+
+## Typical Usage Examples
+
+### Run multiple nodes on one machine
+
+```bash
+--ctl-node-name "Node A" --ctl-random-id
+```
+
+### Bind to a specific interface
+
+```bash
+--ctl-address 10.0.0.15 --ctl-interface wlan0
+```
+
+### Start a controller node
+
+```
+--ctl-controler
+```
+
+### Start an executor node
+
+```
+--ctl-executor
+```
+
+---
+
+## Notes
+
+- CLI arguments are intentionally minimal to keep startup predictable.
+- All CLI flags are optional.
+- Invalid or missing argument values are ignored silently.
+- Role flags are mutually exclusive; the last specified role flag wins if both are present.
+
+
+---
+
+## `ConstellationConfig`
+*Defined in:* [`Constellation.gd`](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/Constellation.gd)
+
+`ConstellationConfig` is a static configuration container used by the Constellation Network Engine to manage default settings and persistent user overrides.  
+It defines how the network binds to interfaces, how the local node identifies itself, how sessions behave across restarts, and how logging is handled.
+
+Configuration values are loaded in two stages:
+
+1. **Engine defaults** via [`load_config`](#load_config)  
+2. **User overrides** via [`load_user_config`](#load_user_config)  
+
+User overrides always take precedence over engine defaults.
+
+---
+
+## Member Variables
+
+### Logging
+
+#### `custom_loging_method`
+
+*DataType:* `Callable`  
+*Default:* `Callable()`  
+Optional custom callable used for standard log output.  
+If valid, it is invoked instead of `print()` with the log prefix and message arguments.
+
+---
+
+#### `custom_loging_method_verbose`
+
+*DataType:* `Callable`  
+*Default:* `Callable()`  
+Optional custom callable used for verbose logging output.  
+If not set, `print_verbose()` is used.
+
+---
+
+#### `log_prefix`
+
+*DataType:* `String`  
+*Default:* `""`  
+String prefix added to all log output.  
+The active node name is appended automatically by the network handler.
+
+---
+
+### Network Binding
+
+#### `bind_address`
+
+*DataType:* `String`  
+*Default:* `"127.0.0.1"`  
+Local IP address to bind TCP and UDP sockets to.  
+
+Note: Due to multicast usage, binding to loopback may prevent discovery on some platforms, but it is kept as a safe default.
+
+---
+
+#### `bind_interface`
+
+*DataType:* `String`  
+*Default:* `"lo"`  
+Network interface name used to join the multicast group.  
+Must correspond to the interface routing traffic for `bind_address`.
+
+---
+
+### User Config Storage
+
+#### `user_config_file_location`
+
+*DataType:* `String`  
+*Default:* `"user://"`  
+Directory used to store the user configuration file.
+
+---
+
+#### `user_config_file_name`
+
+*DataType:* `String`  
+*Default:* `"constellation.conf"`  
+Filename of the user configuration file.
+
+---
+
+### Local Node Persistence
+
+#### `node_id`
+
+*DataType:* `String`  
+*Default:* `UUID_Util.v4()`  
+Persistent NodeID for the local node.  
+
+---
+
+#### `node_name`
+
+*DataType:* `String`  
+*Default:* `"ConstellationNode"`  
+Human-readable name of the local node.  
+Advertised during discovery and used in logs and UI.
+
+---
+
+### Session Persistence
+
+#### `session_id`
+
+*DataType:* `String`  
+*Default:* `""`  
+The SessionID the local node was last connected to.  
+Used to support automatic session rejoining.
+
+---
+
+#### `session_auto_rejoin`
+
+*DataType:* `bool`  
+*Default:* `true`  
+If enabled, Constellation will automatically attempt to rejoin `session_id` if it is discovered on the network.
+
+---
+
+#### `auto_create_session`
+
+*DataType:* `bool`  
+*Default:* `true`  
+If enabled, Constellation will automatically create a new session when:
+
+- The node is online  
+- The node is not currently in a session  
+- Session discovery does not find a matching [`session_id`](#session_id) within the wait window  
+
+---
+
+
+## Public API
+
+### `load_config`
+
+*Args:* `String: p_path`  
+*Returns:* `bool`  
+
+Loads engine default configuration from a script file.  
+The script must expose a `config` dictionary containing default values.
+
+Returns `true` on success.
+
+---
+
+### `load_user_config`
+
+*Args:* `null`  
+*Returns:* `Error`  
+
+Loads persisted user overrides from disk.  
+If the config file does not exist, defaults are written automatically.
+
+This function loads values from the following sections:
+
+- `Network`
+- `LocalNode`
+- `Session`
+
+After loading, [`save_user_config`](#save_user_config) is called to ensure missing keys are persisted.
+
+---
+
+### `save_user_config`
+
+*Args:* `null`  
+*Returns:* `Error`  
+
+Writes the current configuration values to disk.  
+This is called automatically when:
+
+- Network bind settings change  
+- Local node name changes  
+- Session changes  
+- The application is closing  
+
+---
+
+### `get_user_config_path`
+
+*Args:* `null`  
+*Returns:* `String`  
+
+Returns the fully resolved file path to the user configuration file.  
+Automatically handles path separators.
+
+---
+
+## Practical Notes
+
+- `bind_address` and `bind_interface` must refer to the same network route for multicast discovery to function correctly.
+- Changing `node_id` will cause the network to treat the node as a new device.
+- If `session_auto_rejoin` is enabled but `session_id` is empty, auto-create behavior is used instead (if enabled).
+- Command-line arguments may override configuration values at startup before the network begins.
+
