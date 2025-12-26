@@ -31,7 +31,7 @@ export default function Page() {
 
 				<div className="flex justify-center lg:justify-end">
 					<img
-						src="https://raw.githubusercontent.com/SpectrumPro/Spectrum/master/.github/MainUI.png"
+						src="https://raw.githubusercontent.com/SpectrumPro/Spectrum/refs/heads/master/.github/screenshots/Layout.png"
 						alt="Spectrum lighting control interface"
 						className="max-w-full h-auto rounded-md shadow-lg "
 					/>
