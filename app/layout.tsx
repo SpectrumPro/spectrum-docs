@@ -3,12 +3,15 @@
 import { Footer, Layout, Navbar } from "nextra-theme-docs";
 import { Banner, Head } from "nextra/components";
 import { getPageMap } from "nextra/page-map";
+import type { Metadata } from 'next'
+
 import "nextra-theme-docs/style.css";
 import "./globals.css";
-
-export const metadata = {
-	// Good place for title/description, etc.
-};
+ 
+export const metadata: Metadata = {
+  title: 'Spectrum',
+  description: 'The modular lighting system.',
+}
 
 const banner = (
 	<Banner storageKey="966039a7-ae0b-4fce-90e5-cc8f55f418a5-welcome-banner-spectrum-docs">
@@ -22,7 +25,7 @@ const navbar = (
 			<img
 				alt={"Spectrum Logo"}
 				src={
-					"https://raw.githubusercontent.com/SpectrumPro/Spectrum/refs/heads/master/assets/logo.svg"
+					"https://raw.githubusercontent.com/SpectrumPro/logos/refs/heads/main/spectrum_text/spectrum_text.svg"
 				}
 				width={200}
 			/>
