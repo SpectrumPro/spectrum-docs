@@ -26,7 +26,7 @@ async function fetchReleases(owner: string, repo: string): Promise<Release[]> {
 	const url = `https://api.github.com/repos/${owner}/${repo}/releases`;
 
 	const res = await fetch(url, {
-		next: { revalidate: 3600 },
+		cache: "no-store", // Always fetch fresh data
 	});
 
 	if (!res.ok) {
@@ -57,38 +57,91 @@ function parseFilename(filename: string) {
 	return { os, arch };
 }
 
-export default async function LatestReleaseTable({ org, repo, title }: LatestReleaseTableProps) {
+export default async function LatestReleaseTable({
+	org,
+	repo,
+	title,
+}: LatestReleaseTableProps) {
 	const releases = await fetchReleases(org, repo);
-	if (releases.length === 0) return <p>No releases found.</p>;
 
-	const latest = releases[0];
+	// Filter for release tagged as "latest"
+	const latest = releases
+		.filter((r) => !r.prerelease && !r.draft)
+		.sort(
+			(a, b) =>
+				new Date(b.published_at).getTime() - new Date(a.published_at).getTime(),
+		)[0];
+
+	if (!latest) return <p>No latest release found.</p>;
 
 	return (
 		<div className="relative overflow-x-auto shadow-lg sm:rounded-lg w-full max-w-4xl dark:shadow-neutral-800">
 			<table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
 				<caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-neutral-900">
-					{title}
-					<p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
-						{latest.name || latest.tag_name} {new Date(latest.published_at).toLocaleDateString()}
-					</p>
+					<div className="flex items-center justify-between">
+						<div>
+							{title}
+							<p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
+								{latest.name || latest.tag_name}{" "}
+								{new Date(latest.published_at).toLocaleDateString()}
+							</p>
+						</div>
+						<a
+							href={`https://github.com/${org}/${repo}/releases/tag/${latest.tag_name}`}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-gray-600 hover:underline dark:text-gray-400 text-sm font-medium flex items-center"
+						>
+							View on GitHub
+							<svg
+								className="w-4 h-4 ml-1"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								viewBox="0 0 24 24"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									d="M13 7h6m0 0v6m0-6L10 16"
+								/>
+							</svg>
+						</a>
+					</div>
 				</caption>
 				<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-neutral-800 dark:text-gray-400">
 					<tr>
-						<th scope="col" className="px-6 py-3">Operating System</th>
-						<th scope="col" className="px-6 py-3">Architecture</th>
-						<th scope="col" className="px-6 py-3">Size</th>
-						<th scope="col" className="px-6 py-3">Download</th>
+						<th scope="col" className="px-6 py-3">
+							Operating System
+						</th>
+						<th scope="col" className="px-6 py-3">
+							Architecture
+						</th>
+						<th scope="col" className="px-6 py-3">
+							Size
+						</th>
+						<th scope="col" className="px-6 py-3">
+							<span className="sr-only">Download</span>
+						</th>
 					</tr>
 				</thead>
 				<tbody>
 					{latest.assets.map((asset) => {
 						const { os, arch } = parseFilename(asset.name);
 						return (
-							<tr key={asset.id} className="bg-white border-b dark:bg-neutral-900 dark:border-neutral-700 border-gray-200">
-								<td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{os}</td>
+							<tr
+								key={asset.id}
+								className="bg-white border-b dark:bg-neutral-900 dark:border-neutral-700 border-gray-200"
+							>
+								<td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+									{os}
+								</td>
 								<td className="px-6 py-4">{arch}</td>
-								<td className="px-6 py-4">{Math.round(asset.size / 1024 / 1024)} MB</td>
 								<td className="px-6 py-4">
+									{Math.round(asset.size / 1024 / 1024)} MB
+								</td>
+								<td className="px-6 py-4 text-right">
 									<a
 										href={asset.browser_download_url}
 										className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
