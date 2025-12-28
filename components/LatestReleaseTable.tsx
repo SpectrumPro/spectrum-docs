@@ -65,12 +65,10 @@ export default async function LatestReleaseTable({
 	const releases = await fetchReleases(org, repo);
 
 	// Filter for release tagged as "latest"
-	const latest = releases
-		.filter((r) => !r.prerelease && !r.draft)
-		.sort(
-			(a, b) =>
-				new Date(b.published_at).getTime() - new Date(a.published_at).getTime(),
-		)[0];
+	const latest = releases.sort(
+		(a, b) =>
+			new Date(b.published_at).getTime() - new Date(a.published_at).getTime(),
+	)[0];
 
 	if (!latest) return <p>No latest release found.</p>;
 
