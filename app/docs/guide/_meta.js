@@ -2,9 +2,9 @@
 export default {
 	"index": "Getting Started",
 	"client-ui": "Client UI",
-	"file-management": "File Management",
 	"patching": "Patching Fixtures",
 	"programmer": "Using the Programmer",
 	"scenes": "Creating a Scene",
 	"cuelists": "Creating a CueList",
+	"file-management": "File Management",
 };
