@@ -1,1 +1,35 @@
-# Fixture
+# `Fixture`
+[Fixture.gd](https://github.com/SpectrumPro/spectrum-server/blob/master/core/components/fixtures/Fixture.gd)  
+*Extends:* `EngineComponent`
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`Fixture` about
+
+This class is responsible for:
+- TODO
+
+---
+
+## Enumerations
+
+
+### ControlType
+
+`ControlType` is used to define a high-level behavioral type of a fixture parameter.
+It determines how the parameter is interacted with (shortcuts, defaults, FX, etc),
+not how it is visually grouped in the UI.
+
+| Enum         | Description | Example Parameters |
+|--------------|-------------|--------------------|
+| `INTENSITY`  | Percentage-based output level. Supports absolute values (0–100%), blackout/full, and smooth fades. | Dimmer, Strobe, Color Intensity, Gobo Shake |
+| `POSITION`   | Spatial or positional parameters with a meaningful “home” or default location. Typically center-based. | Pan, Tilt, XYZ Position |
+| `SELECT`     | Discrete, stepped selections where values represent named options rather than a continuous range. | Color Wheel, Gobo Wheel, Prism Select, Color Macro |
+| `VALUE`      | Continuous, non-percentage parameters representing an amount or size. No fixed shortcuts or home behavior. | Zoom, Focus, Iris, Frost, Framing Shutters |
+| `SPEED`      | Rate-based parameters controlling how fast something changes. Interpreted as slow ↔ fast. | Pan/Tilt Speed, Gobo Rotate Speed, Effect Speed |
+| `SYSTEM`     | Non-show or configuration parameters. Not intended for FX, shortcuts, or normal programming interaction. | Lamp On/Off, Fixture Reset, Fan Mode, Calibration |
+
+A full list of `ControlType` mappings for each parameter can be found in
+[`GDTFSpecAttributes.json`](https://github.com/SpectrumPro/spectrum-server/blob/master/core/fixtures/import/GDTFSpecAttributes.json).
