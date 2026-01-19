@@ -22,7 +22,11 @@ type LatestReleaseTableProps = {
 	title: string;
 };
 
-async function fetchReleases(owner: string, repo: string): Promise<Release[]> {
+async function fetchReleases(
+	owner: string,
+	repo: string,
+	prerelease: bool,
+): Promise<Release[]> {
 	const url = `https://api.github.com/repos/${owner}/${repo}/releases`;
 
 	const res = await fetch(url, {
@@ -34,7 +38,11 @@ async function fetchReleases(owner: string, repo: string): Promise<Release[]> {
 	}
 
 	const data = (await res.json()) as any[];
-	return data.map((r) => ({
+	const stableReleases = data.filter((r) =>
+		prerelease ? r.prerelease : !r.prerelease,
+	);
+	// console.log(prerelease);
+	return stableReleases.map((r) => ({
 		id: r.id,
 		tag_name: r.tag_name,
 		name: r.name,
@@ -61,8 +69,9 @@ export default async function LatestReleaseTable({
 	org,
 	repo,
 	title,
+	prerelease,
 }: LatestReleaseTableProps) {
-	const releases = await fetchReleases(org, repo);
+	const releases = await fetchReleases(org, repo, prerelease);
 
 	// Filter for release tagged as "latest"
 	const latest = releases.sort(

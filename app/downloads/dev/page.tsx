@@ -7,22 +7,21 @@ export default function DownloadsPage() {
 			<LatestReleaseTable
 				org="SpectrumPro"
 				repo="spectrum"
-				title="Spectrum Client"
-				prerelease={false}
+				title="Spectrum Client Dev"
+				prerelease="true"
 			/>
 			<div className="mb-5" />
 			<LatestReleaseTable
 				org="SpectrumPro"
 				repo="spectrum-server"
-				title="Spectrum Server"
-				prerelease={false}
+				title="Spectrum Server Dev"
+				prerelease="true"
 			/>
-
 			<a
-				href="/downloads/dev"
+				href="/downloads/"
 				className="mt-6 font-medium text-gray-500 hover:text-gray-700 hover:underline"
 			>
-				Dev Build Downloads →
+				← Release Build Downloads
 			</a>
 		</section>
 	);
