@@ -8,14 +8,14 @@ export default function DownloadsPage() {
 				org="SpectrumPro"
 				repo="spectrum"
 				title="Spectrum Client Dev"
-				prerelease="true"
+				prerelease={true}
 			/>
 			<div className="mb-5" />
 			<LatestReleaseTable
 				org="SpectrumPro"
 				repo="spectrum-server"
 				title="Spectrum Server Dev"
-				prerelease="true"
+				prerelease={true}
 			/>
 			<a
 				href="/downloads/"
