@@ -20,12 +20,13 @@ type LatestReleaseTableProps = {
 	org: string;
 	repo: string;
 	title: string;
+	prerelease: boolean;
 };
 
 async function fetchReleases(
 	owner: string,
 	repo: string,
-	prerelease: bool,
+	prerelease: boolean,
 ): Promise<Release[]> {
 	const url = `https://api.github.com/repos/${owner}/${repo}/releases`;
 
