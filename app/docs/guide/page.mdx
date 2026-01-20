@@ -1,5 +1,6 @@
 import { Callout } from 'nextra/components'
-import LatestReleaseTable from "@/components/LatestReleaseTable";
+import SpectrumClientDownload from "@/components/SpectrumClientDownload";
+import SpectrumServerDownload from "@/components/SpectrumServerDownload";
 import Image from 'next/image'
 
 # Getting Started
@@ -18,9 +19,9 @@ Currently, the client and server binaries must be run separately. A launcher is 
 
 <br/>
 
-<LatestReleaseTable org="SpectrumPro" repo="spectrum" title="Spectrum Client" />
+<SpectrumClientDownload />
 <br/>
-<LatestReleaseTable org="SpectrumPro" repo="spectrum-server" title="Spectrum Server" />
+<SpectrumServerDownload />
 
 Once both files are downloaded, open them both.
 

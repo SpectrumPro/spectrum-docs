@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
+import ThemeSwapLogo from "./ThemeSwapLogo";
 
 type Asset = {
 	id: number;
@@ -21,6 +20,8 @@ type LatestReleaseTableProps = {
 	repo: string;
 	title: string;
 	prerelease: boolean;
+	logoLinkLight: string;
+	logoLinkDark: string;
 };
 
 async function fetchReleases(
@@ -42,7 +43,7 @@ async function fetchReleases(
 	const stableReleases = data.filter((r) =>
 		prerelease ? r.prerelease : !r.prerelease,
 	);
-	// console.log(prerelease);
+
 	return stableReleases.map((r) => ({
 		id: r.id,
 		tag_name: r.tag_name,
@@ -71,10 +72,11 @@ export default async function LatestReleaseTable({
 	repo,
 	title,
 	prerelease,
+	logoLinkLight,
+	logoLinkDark,
 }: LatestReleaseTableProps) {
 	const releases = await fetchReleases(org, repo, prerelease);
 
-	// Filter for release tagged as "latest"
 	const latest = releases.sort(
 		(a, b) =>
 			new Date(b.published_at).getTime() - new Date(a.published_at).getTime(),
@@ -87,13 +89,25 @@ export default async function LatestReleaseTable({
 			<table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
 				<caption className="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-neutral-900">
 					<div className="flex items-center justify-between">
-						<div>
-							{title}
-							<p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
-								{latest.name || latest.tag_name}{" "}
-								{new Date(latest.published_at).toLocaleDateString()}
-							</p>
+						<div className="flex items-center gap-3">
+							<ThemeSwapLogo
+								title={title}
+								logoLinkLight={logoLinkLight}
+								logoLinkDark={logoLinkDark}
+							/>
+
+							<div>
+								<div className="flex items-center gap-2">
+									<span>{title}</span>
+								</div>
+
+								<p className="mt-1 text-sm font-normal text-gray-500 dark:text-gray-400">
+									{latest.name || latest.tag_name}{" "}
+									{new Date(latest.published_at).toLocaleDateString()}
+								</p>
+							</div>
 						</div>
+
 						<a
 							href={`https://github.com/${org}/${repo}/releases/tag/${latest.tag_name}`}
 							target="_blank"
@@ -107,7 +121,6 @@ export default async function LatestReleaseTable({
 								stroke="currentColor"
 								strokeWidth="2"
 								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
 							>
 								<path
 									strokeLinecap="round"
@@ -118,6 +131,7 @@ export default async function LatestReleaseTable({
 						</a>
 					</div>
 				</caption>
+
 				<thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-neutral-800 dark:text-gray-400">
 					<tr>
 						<th scope="col" className="px-6 py-3">
