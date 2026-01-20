@@ -1,12 +1,18 @@
 import LatestReleaseTable from "@/components/LatestReleaseTable";
 
-export default function SpectrumClientDownload() {
+type SpectrumServerDownloadProps = {
+	prerelease?: boolean;
+};
+
+export default function SpectrumServerDownload({
+	prerelease = false,
+}: SpectrumServerDownloadProps) {
 	return (
 		<LatestReleaseTable
 			org="SpectrumPro"
 			repo="spectrum-server"
 			title="Spectrum Server"
-			prerelease={false}
+			prerelease={prerelease}
 			logoLinkLight="https://raw.githubusercontent.com/SpectrumPro/logos/refs/heads/main/spectrum_server/spectrum_server_light.svg"
 			logoLinkDark="https://raw.githubusercontent.com/SpectrumPro/logos/refs/heads/main/spectrum_server/spectrum_server_dark.svg"
 		/>
