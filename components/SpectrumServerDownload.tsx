@@ -11,7 +11,7 @@ export default function SpectrumServerDownload({
 		<LatestReleaseTable
 			org="SpectrumPro"
 			repo="spectrum-server"
-			title="Spectrum Server"
+			title={"Spectrum Server" + (prerelease ? " Dev" : "")}
 			prerelease={prerelease}
 			logoLinkLight="https://raw.githubusercontent.com/SpectrumPro/logos/refs/heads/main/spectrum_server/spectrum_server_light.svg"
 			logoLinkDark="https://raw.githubusercontent.com/SpectrumPro/logos/refs/heads/main/spectrum_server/spectrum_server_dark.svg"

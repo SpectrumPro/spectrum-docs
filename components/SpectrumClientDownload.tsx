@@ -11,7 +11,7 @@ export default function SpectrumClientDownload({
 		<LatestReleaseTable
 			org="SpectrumPro"
 			repo="spectrum"
-			title="Spectrum Client"
+			title={"Spectrum Client" + (prerelease ? " Dev" : "")}
 			prerelease={prerelease}
 			logoLinkLight="https://raw.githubusercontent.com/SpectrumPro/logos/refs/heads/main/spectrum/spectrum_light.svg"
 			logoLinkDark="https://raw.githubusercontent.com/SpectrumPro/logos/refs/heads/main/spectrum/spectrum_dark.svg"
