@@ -15,7 +15,7 @@ export default function Page() {
 
 					<div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
 						<a
-							href="/docs"
+							href="/docs/guide"
 							className="inline-flex items-center justify-center px-5 py-3 text-base font-medium text-white gradient-btn rounded-lg hover:bg-blue-700"
 						>
 							Get started →
