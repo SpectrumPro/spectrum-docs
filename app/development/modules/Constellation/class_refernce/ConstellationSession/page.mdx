@@ -1,0 +1,192 @@
+# `ConstellationSession`
+*source:* [`ConstellationSession.gd`](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/ConstellationSession.gd) *extends:* [`NetworkSession.gd`](https://github.com/SpectrumPro/NetworkManager/blob/main/NetworkItems/NetworkSession.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstellationSession` represents a session in the Constellation network. It manages the set of nodes that belong to the session, tracks priority order and session master, and handles sending commands to nodes according to a routing filter. Session state is kept in sync across the network via multicast announcements.
+
+---
+
+## SettingsManager Entries
+
+| Name | DataType | EntryType | Description |
+|------|----------|-----------|-------------|
+| `Master` | `Data.Type.OBJECT` | SETTING | The `ConstellationNode` that is the master of this session. |
+| `Name` | `Data.Type.STRING` | SETTING | The name of this session. |
+| `MemberCount` | `Data.Type.INT` | STATUS | The current number of nodes in this session. |
+
+---
+
+## Public API
+
+### `_init`
+
+*Args:* `String: p_uuid = UUID.v4()`  
+*Returns:* void
+
+Initialises the session with the given UUID. If no UUID is provided, one is generated automatically. Sets the class name and registers session settings.
+
+---
+
+### `create_from_session_announce`
+
+*Args:* `ConstaNetSessionAnnounce: p_message`  
+*Returns:* `ConstellationSession`
+
+Static factory. Creates and returns a new `ConstellationSession` populated from a received session announcement packet. Sets the session ID, name, and adds all nodes referenced in the message, creating unknown node placeholders for any that have not yet been discovered.
+
+---
+
+### `create_unknown_session`
+
+*Args:* `String: p_session_id`  
+*Returns:* `ConstellationSession`
+
+Static factory. Creates and returns a new `ConstellationSession` in an unknown state, identified only by the given session ID. Used as a placeholder when a session has been referenced but not yet announced on the network.
+
+---
+
+### `send_command`
+
+*Args:*
+- `Variant: p_command`
+- `NodeFilter: p_node_filter = NodeFilter.AUTO`
+- `Array[NetworkNode]: p_nodes = []`
+
+*Returns:* `Error`
+
+Constructs a `ConstaNetCommand` from the given value and sends it to the session using the specified `NodeFilter` routing rule. `p_command` may be any GDScript `Variant`. `p_nodes` is only used when `p_node_filter` is `NodeFilter.MANUAL`. See `NodeFilter` in the parent class documentation for routing behaviour.
+
+---
+
+### `send_pre_existing_command`
+
+*Args:*
+- `ConstaNetCommand: p_command`
+- `NodeFilter: p_node_filter = NodeFilter.AUTO`
+- `Array[NetworkNode]: p_nodes = []`
+
+*Returns:* `Error`
+
+Sends a pre-constructed `ConstaNetCommand` to the session. Fills in the `in_session` and `origin_id` fields before routing. When `p_node_filter` is `NodeFilter.AUTO`, the filter resolves to `NodeFilter.ALL_OTHER_NODES` if the local node is the session master, or `NodeFilter.MASTER` otherwise. Returns `ERR_DOES_NOT_EXIST` if routing to master and no master is set, or `ERR_INVALID_PARAMETER` if an unrecognised filter is given.
+
+---
+
+### `close`
+
+*Args:* null  
+*Returns:* void
+
+Closes and cleans up this session's local state. Clears the session master, removes and disconnects all nodes, and clears the priority order.
+
+---
+
+### `set_priority_order`
+
+*Args:*
+- `NetworkNode: p_node`
+- `int: p_position`
+
+*Returns:* `bool`
+
+Moves the given node to the specified position in the priority order and broadcasts the change via multicast. Returns `false` if the node is not in this session or if the position is out of range.
+
+---
+
+### `set_master`
+
+*Args:* `NetworkNode: p_node`  
+*Returns:* `bool`
+
+Sets the session master to the given node and broadcasts the change via multicast. Returns `false` if the node is already the session master or is not a member of this session.
+
+---
+
+### `set_session_name`
+
+*Args:* `String: p_name`  
+*Returns:* `bool`
+
+Sets the session name and broadcasts the change via multicast. Returns `false` if the name is unchanged.
+
+---
+
+### `get_nodes`
+
+*Args:* null  
+*Returns:* `Array[NetworkNode]`
+
+Returns a typed array of all nodes currently in this session.
+
+---
+
+### `get_number_of_nodes`
+
+*Args:* null  
+*Returns:* `int`
+
+Returns the number of nodes currently in this session.
+
+---
+
+### `get_session_id`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the session ID.
+
+---
+
+### `get_session_master`
+
+*Args:* null  
+*Returns:* `ConstellationNode`
+
+Returns the current session master node, or `null` if no master is set.
+
+---
+
+### `get_priority_order`
+
+*Args:* null  
+*Returns:* `Array[NetworkNode]`
+
+Returns the current priority order as a typed array. The first node in the array has the highest priority.
+
+---
+
+### `get_priority_of`
+
+*Args:* `NetworkNode: p_node`  
+*Returns:* `int`
+
+Returns the index of the given node in the priority order, or `-1` if it is not present.
+
+---
+
+### `get_session_flags`
+
+*Args:* null  
+*Returns:* `int`
+
+Returns the session flags bitmask for this session.
+
+---
+
+### `has_session_master`
+
+*Args:* null  
+*Returns:* `bool`
+
+Returns `true` if a session master is currently set.
+
+---
+
+## Notes
+
+- When the last node is removed from a session, `delete_requested` is emitted and the session is expected to be cleaned up by the network handler. No further operations should be performed on a session after this point.
+- The session master is automatically assigned to the first node in the priority order when no master is set and a node is added. When the current master loses connection or is removed, the master role transfers to the next node in the priority order.
+- Priority order and session master are kept in sync across the network via multicast. Local changes made through the private API do not broadcast and are intended for processing incoming network updates only.

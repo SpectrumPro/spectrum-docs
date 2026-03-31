@@ -1,0 +1,328 @@
+# `ConstellationNode`
+*source:* [`ConstellationNode.gd`](https://github.com/SpectrumPro/Constellation/blob/main/Constellation/ConstellationNode.gd) *extends:* [`NetworkNode.gd`](https://github.com/SpectrumPro/NetworkManager/blob/main/NetworkItems/NetworkNode.gd)
+
+**Copyright (c) 2025  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ConstellationNode` represents a single node in the Constellation network. It manages the TCP and UDP connections to a remote peer, handles all incoming message routing for that peer, and exposes controls for session membership, role flags, and node identity. The local node is also represented by this class, with local-only behaviour gated by [`is_local`](#is_local).
+
+---
+
+## Signals
+
+### `role_flags_changed`
+
+*Args:* `int: node_flags`  
+Emitted when the role flags of this node change.
+
+### `command_recieved`
+
+*Args:* `ConstaNetCommand: command`  
+Emitted when a command is received. Only emitted on the local node.
+
+### `node_ip_changed`
+
+*Args:* `String: ip`  
+Emitted when the IP address of this node changes.
+
+---
+
+## Constants
+
+| Name | Type | Value | Description |
+|------|------|-------|-------------|
+| `UDP_MTP` | `int` | `1000` | Maximum UDP payload size in bytes. Payloads exceeding this are automatically fragmented and sent as multipart messages. |
+
+---
+
+## Enums
+
+### `TransportMode`
+
+Controls which transport protocol is used when sending a message to this node.
+
+| Name | Value | Description |
+|------|-------|-------------|
+| `TCP` | `0` | Always send via TCP. |
+| `UDP` | `1` | Always send via UDP. |
+| `AUTO` | `2` | Send via TCP if the TCP socket is connected, otherwise fall back to UDP. |
+
+---
+
+## SettingsManager Entries
+
+| Name | DataType | EntryType | Description |
+|------|----------|-----------|-------------|
+| `Name` | `Data.Type.STRING` | SETTING | The name of this node. |
+| `Session` | `Data.Type.OBJECT` | SETTING | The `ConstellationSession` this node is a member of. |
+| `RoleFlags` | `Data.Type.BITFLAGS` | SETTING | The role flags of this node. Only editable on the local node. |
+| `BindAddress` | `Data.Type.IP` | SETTING | The bind address and interface name. Only displayed on the local node. |
+| `ConnectionState` | `Data.Type.ENUM` | STATUS | The current connection state of this node. |
+| `IpAddress` | `Data.Type.STRING` | STATUS | The current IP address of this node. |
+
+---
+
+## Public API
+
+### `_init`
+
+*Args:* `String: p_uuid = UUID.v4()`  
+*Returns:* void
+
+Initialises the node with the given UUID. If no UUID is provided, one is generated automatically. Sets the class name and registers node settings.
+
+---
+
+### `create_from_discovery`
+
+*Args:* `ConstaNetDiscovery: p_disco`  
+*Returns:* `ConstellationNode`
+
+Static factory. Creates and returns a new `ConstellationNode` populated from a received discovery packet. Sets the connection state to `DISCOVERED` and immediately connects the UDP socket to the remote peer's address and port.
+
+---
+
+### `create_local_node`
+
+*Args:* null  
+*Returns:* `ConstellationNode`
+
+Static factory. Creates and returns a new `ConstellationNode` configured as the local node. Sets the connection state to `CONNECTED` and marks the node with the `LOCAL_NODE` flag.
+
+---
+
+### `create_unknown_node`
+
+*Args:* `String: p_node_id`  
+*Returns:* `ConstellationNode`
+
+Static factory. Creates and returns a new `ConstellationNode` in an unknown state, identified only by the given node ID. Used as a placeholder when a node has been referenced but not yet discovered on the network.
+
+---
+
+### `connect_tcp`
+
+*Args:* null  
+*Returns:* `Error`
+
+Connects the TCP socket to this node's address and port. Returns `ERR_UNAVAILABLE` if called on the local node, `ERR_ALREADY_EXISTS` if already connected, or an `Error` code from the underlying socket connect call. Enables Nagle's algorithm bypass (`no_delay`) on the socket.
+
+---
+
+### `disconnect_tcp`
+
+*Args:* null  
+*Returns:* void
+
+Disconnects the TCP socket from this node and resets the previous TCP status tracker.
+
+---
+
+### `send_message`
+
+*Args:*
+- `ConstaNetHeadder: p_message`
+- `TransportMode: p_transport_mode = TransportMode.AUTO`
+
+*Returns:* `Error`
+
+Sends a message to this node using the specified transport mode. When using `AUTO`, TCP is preferred if connected, otherwise UDP is used. Returns `ERR_INVALID_PARAMETER` if an unrecognised transport mode is given.
+
+---
+
+### `send_message_udp`
+
+*Args:* `ConstaNetHeadder: p_message`  
+*Returns:* `Error`
+
+Sends a message to this node via UDP. If the serialised payload exceeds [`UDP_MTP`](#constants), it is automatically split and sent as a sequence of `ConstaNetMultiPart` chunks. Returns `ERR_CONNECTION_ERROR` if the UDP socket is not connected.
+
+---
+
+### `send_message_tcp`
+
+*Args:* `ConstaNetHeadder: p_message`  
+*Returns:* `Error`
+
+Sends a message to this node via TCP. Returns `ERR_CONNECTION_ERROR` if the TCP socket is not in a connected state.
+
+---
+
+### `join_session`
+
+*Args:* `NetworkSession: p_session`  
+*Returns:* `bool`
+
+Joins the given session. If called on the local node, delegates to [`Constellation.join_session`](./Constellation.md#join_session). If called on a remote node, sends a `ConstaNetSetAttribute` request to the remote peer. Returns `false` if the session is invalid or already the current session.
+
+---
+
+### `leave_session`
+
+*Args:* null  
+*Returns:* `bool`
+
+Leaves the current session. If called on the local node, delegates to [`Constellation.leave_session`](./Constellation.md#leave_session). If called on a remote node, sends a `ConstaNetSetAttribute` request to the remote peer. Returns `false` if not currently in a session.
+
+---
+
+### `close`
+
+*Args:* null  
+*Returns:* void
+
+Closes and cleans up this node's local connection objects. Disconnects TCP, closes the UDP socket, and sets the connection state to `UNKNOWN`.
+
+---
+
+### `get_role_flags`
+
+*Args:* null  
+*Returns:* `int`
+
+Returns the current role flags bitmask for this node.
+
+---
+
+### `get_connection_state`
+
+*Args:* null  
+*Returns:* `ConnectionState`
+
+Returns the current connection state of this node.
+
+---
+
+### `get_connection_state_human`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the current connection state as a capitalised, human-readable string.
+
+---
+
+### `get_node_flags`
+
+*Args:* null  
+*Returns:* `int`
+
+Returns the node flags bitmask for this node.
+
+---
+
+### `get_node_id`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the NodeID of this node.
+
+---
+
+### `get_node_ip`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the IP address of this node.
+
+---
+
+### `get_session_id`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the session ID of the session this node is currently in, or an empty string if not in a session.
+
+---
+
+### `get_last_seen_time`
+
+*Args:* null  
+*Returns:* `float`
+
+Returns the Unix timestamp of the last time this node was seen on the network.
+
+---
+
+### `set_node_name`
+
+*Args:* `String: p_name`  
+*Returns:* void
+
+Sets the name of this node. If called on the local node, broadcasts the name change via multicast. If called on a remote node, sends a `ConstaNetSetAttribute` request to that peer.
+
+---
+
+### `set_role_flags`
+
+*Args:* `int: p_role_flags`  
+*Returns:* `bool`
+
+Sets the role flags on the local node. Returns `false` if called on a remote node. Returns `false` if the value is unchanged.
+
+---
+
+### `is_local`
+
+*Args:* null  
+*Returns:* `bool`
+
+Returns `true` if this node is the local node.
+
+---
+
+### `is_unknown`
+
+*Args:* null  
+*Returns:* `bool`
+
+Returns `true` if this node is in an unknown state (referenced but not yet discovered).
+
+---
+
+### `is_executor`
+
+*Args:* null  
+*Returns:* `bool`
+
+Returns `true` if the `EXECUTOR` role flag is set on this node.
+
+---
+
+### `is_controller`
+
+*Args:* null  
+*Returns:* `bool`
+
+Returns `true` if the `CONTROLLER` role flag is set on this node.
+
+---
+
+### `is_sesion_master`
+
+*Args:* null  
+*Returns:* `bool`
+
+Returns `true` if this node is the master of its current session.
+
+---
+
+### `is_tcp_connected`
+
+*Args:* null  
+*Returns:* `bool`
+
+Returns `true` if the TCP socket is currently in a connected state.
+
+---
+
+## Notes
+
+- `set_session` and `get_session` are inherited from `NetworkNode` — see the `NetworkNode` documentation.
+- `is_sesion_master` is a typo in the source (`sesion` instead of `session`). Document and call it exactly as spelled until it is corrected upstream.
+- Role flag methods (`is_executor`, `is_controller`, `set_role_flags`) only have write-side effect on the local node; read operations work on any node.
+- Multipart fragmentation in [`send_message_udp`](#send_message_udp) is handled automatically and transparently — callers do not need to account for payload size.
