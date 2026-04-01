@@ -1,0 +1,145 @@
+# `GlobalBaseClass`
+*source:* [`GlobalBaseClass.gd`](https://github.com/SpectrumPro/Spectrum/blob/main/GlobalBaseClass.gd)
+
+**Copyright (c) 2026  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`GlobalBaseClass` (GBC) defines the required signals, member variables, and methods that any class must implement to be compatible with the global `ClassList` and `ObjectDB`. It acts as a structural interface — GDScript does not have a native interface or trait system, so `GlobalBaseClass` serves as the closest equivalent: a concrete base class that defines the expected contract. Any class intended to participate in the GBC ecosystem must either extend `GlobalBaseClass` directly or implement the same structure and method signatures.
+
+A GBC-compatible class is not required to extend this specific class. It may extend any built-in Godot class (e.g. `Node`, `RefCounted`) as long as it implements all signals, variables, and methods defined here with matching signatures.
+
+---
+
+## Signals
+
+### `name_changed`
+
+*Args:* null  
+Emitted when the user-defined name of this object changes.
+
+---
+
+### `delete_requested`
+
+*Args:* null  
+Emitted when this object is to be freed from memory. Any other script holding a reference to this object must listen for this signal and de-reference it accordingly.
+
+---
+
+## Public API
+
+### `_init`
+
+*Args:*
+- `String: p_uuid = UUID.v4()`
+- `Variant: ...p_args`
+
+*Returns:* void
+
+Initialises the object with the given UUID and sets the class name to `"GlobalBaseClass"`. If no UUID is provided, one is generated automatically. The variadic `...p_args` parameter exists solely to satisfy GDScript's constructor signature matching requirement — subclasses may accept additional optional arguments in their own `_init` without causing a compile error.
+
+---
+
+### `get_uname`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the user-defined name of this object.
+
+---
+
+### `get_uuid`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the UUID of this object.
+
+---
+
+### `get_class_name`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the class name of this object as set during initialisation.
+
+---
+
+### `get_base_class`
+
+*Args:* null  
+*Returns:* `String`
+
+Returns the name of the root class in this object's inheritance tree — the last entry in the class tree array.
+
+---
+
+### `get_class_tree`
+
+*Args:* null  
+*Returns:* `Array[String]`
+
+Returns a copy of the full inheritance tree for this object. Each class in the hierarchy appends its name to this array during `_init` via `_set_class_name`.
+
+---
+
+### `get_settings`
+
+*Args:* null  
+*Returns:* `SettingsManager`
+
+Returns the `SettingsManager` instance associated with this object.
+
+---
+
+### `set_uname`
+
+*Args:*
+- `String: p_name`
+- `bool: p_no_signal = false`
+
+*Returns:* void
+
+Sets the user-defined name of this object. Emits [`name_changed`](#name_changed) unless `p_no_signal` is `true`.
+
+---
+
+### `delete`
+
+*Args:* null  
+*Returns:* void
+
+Emits [`delete_requested`](#delete_requested) to signal that this object should be freed. Does not free the object itself — callers holding a reference are responsible for doing so when they receive the signal.
+
+---
+
+### `serialize`
+
+*Args:* `Data.SerializationFlags: p_flags`  
+*Returns:* `Dictionary[String, Variant]`
+
+Returns a JSON-compatible dictionary representing the serialized state of this object. Always includes `name` and `class_name`. Includes `uuid` unless `Data.SerializationFlags.NO_UUID` is set in `p_flags`.
+
+---
+
+### `deserialize`
+
+*Args:*
+- `Dictionary: p_serialized_data`
+- `Data.SerializationFlags: p_flags`
+
+*Returns:* void
+
+Restores object state from a dictionary produced by [`serialize`](#serialize) or loaded from disk. Restores `name` and, unless `Data.SerializationFlags.NO_UUID` is set, `uuid`. Missing keys fall back to the current values on the object.
+
+---
+
+## Notes
+
+- `GlobalBaseClass` is a structural template, not a strict base class requirement. A class is GBC-compatible as long as it implements the same signals, variables, and method signatures — it does not need to extend `GlobalBaseClass` directly.
+- Each class in the inheritance hierarchy is responsible for calling `_set_class_name` during its own `_init`. This is what populates the class tree returned by [`get_class_tree`](#get_class_tree).
+- [`delete`](#delete) only emits a signal. The object is not freed automatically. Any code holding a reference must connect to [`delete_requested`](#delete_requested) and free or de-reference the object itself.
+- The `serialize` / `deserialize` pair is intended to be overridden by subclasses. Each subclass should call `super.serialize()` / `super.deserialize()` and merge its own data on top.

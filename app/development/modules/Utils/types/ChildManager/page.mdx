@@ -1,0 +1,322 @@
+# `ChildManager`
+*source:* [`ChildManager.gd`](https://github.com/SpectrumPro/Spectrum/blob/main/ChildManager.gd) *extends:* [`Object`](https://docs.godotengine.org/en/stable/classes/class_object.html)
+
+**Copyright (c) 2026  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`ChildManager` is a utility class that provides a unified interface for managing children of a parent object. It wraps a set of user-supplied `Callable` references for creating, adding, removing, and retrieving children, and connects to signals on the parent to track changes. When children are added or removed, `ChildManager` batches the notifications and emits [`modification_callback`](#modification_callback) once per deferred frame.
+
+The user-supplied callables must implement the following interface:
+
+| Method | Return Type | Description |
+|---------|-------------|-------------|
+| `create_child(p_class_name: String)` | `Object` | The returned `Object` is the newly created child. |
+| `add_child(p_child: Object)` | `bool` | The returned `bool` is `true` if the child was added, `false` if it already existed. |
+| `add_children(p_children: Array)` | `void` | |
+| `remove_child(p_child: Object)` | `bool` | The returned `bool` is `true` if the child was removed, `false` if it did not exist. |
+| `remove_children(p_children: Array)` | `void` | |
+| `get_children()` | `Array` | The returned `Array` contains all current child objects. |
+
+In cases where network synchronisation or RPC calls are in use, all user-supplied methods except `get_children` may return a [`Promise`](./development/modules/Utils/types/Promise.md) that resolves once a response is received from the remote. The value passed when the `Promise` resolves must still match the return type specified in the interface above.
+
+---
+
+## Signals
+
+### `modification_callback`
+
+*Args:* `Array: added, Array: removed`  
+Emitted once per deferred frame whenever children have been added or removed since the last emission. `added` contains all children added during the batch window, and `removed` contains all children removed.
+
+---
+
+## Public API
+
+### `_init`
+
+*Args:*
+- `Object: p_parent`
+- `Callable: p_create_child`
+- `Callable: p_add_child`
+- `Callable: p_add_children`
+- `Callable: p_remove_child`
+- `Callable: p_remove_children`
+- `Callable: p_get_children`
+- `Signal: p_children_added`
+- `Signal: p_children_removed`
+- `Script: p_index_class`
+- `Script: p_child_class`
+
+*Returns:* void
+
+Initialises the `ChildManager` with all required references. Each argument is passed directly to its corresponding setter. `p_children_added` and `p_children_removed` are connected to internal handlers immediately.
+
+---
+
+### `create_child`
+
+*Args:* `String: p_class_name`  
+*Returns:* [`Promise`](./development/modules/Utils/types/Promise.md)
+
+Calls the configured create-child callable with the given class name. Returns a rejected `Promise` if no create-child callable has been set.
+
+---
+
+### `add_child`
+
+*Args:* `Object: p_child`  
+*Returns:* [`Promise`](./development/modules/Utils/types/Promise.md)
+
+Calls the configured add-child callable with the given object. Returns a rejected `Promise` if no add-child callable has been set.
+
+---
+
+### `add_children`
+
+*Args:* `Array: p_children`  
+*Returns:* [`Promise`](./development/modules/Utils/types/Promise.md)
+
+Calls the configured add-children callable with the given array of objects. Returns a rejected `Promise` if no add-children callable has been set.
+
+---
+
+### `remove_child`
+
+*Args:* `Object: p_child`  
+*Returns:* [`Promise`](./development/modules/Utils/types/Promise.md)
+
+Calls the configured remove-child callable with the given object. Returns a rejected `Promise` if no remove-child callable has been set.
+
+---
+
+### `remove_children`
+
+*Args:* `Array: p_children`  
+*Returns:* [`Promise`](./development/modules/Utils/types/Promise.md)
+
+Calls the configured remove-children callable with the given array of objects. Returns a rejected `Promise` if no remove-children callable has been set.
+
+---
+
+### `get_children`
+
+*Args:* null  
+*Returns:* `Array`
+
+Calls the configured get-children callable and returns the result. Returns an empty `Array` if no get-children callable has been set.
+
+---
+
+### `get_parent`
+
+*Args:* null  
+*Returns:* `Object`
+
+Returns the parent object.
+
+---
+
+### `get_create_child_method`
+
+*Args:* null  
+*Returns:* `Callable`
+
+Returns the callable used to create a new child.
+
+---
+
+### `get_add_child_method`
+
+*Args:* null  
+*Returns:* `Callable`
+
+Returns the callable used to add a single child.
+
+---
+
+### `get_add_children_method`
+
+*Args:* null  
+*Returns:* `Callable`
+
+Returns the callable used to add multiple children.
+
+---
+
+### `get_remove_child_method`
+
+*Args:* null  
+*Returns:* `Callable`
+
+Returns the callable used to remove a single child.
+
+---
+
+### `get_remove_children_method`
+
+*Args:* null  
+*Returns:* `Callable`
+
+Returns the callable used to remove multiple children.
+
+---
+
+### `get_get_children_method`
+
+*Args:* null  
+*Returns:* `Callable`
+
+Returns the callable used to get all children.
+
+---
+
+### `get_children_added`
+
+*Args:* null  
+*Returns:* `Signal`
+
+Returns the signal that is emitted by the parent when children are added.
+
+---
+
+### `get_children_removed`
+
+*Args:* null  
+*Returns:* `Signal`
+
+Returns the signal that is emitted by the parent when children are removed.
+
+---
+
+### `get_index_class`
+
+*Args:* null  
+*Returns:* `Script`
+
+Returns the script assigned as the index class for this `ChildManager`.
+
+---
+
+### `get_child_class`
+
+*Args:* null  
+*Returns:* `Script`
+
+Returns the script that all child classes must inherit from.
+
+---
+
+### `set_parent`
+
+*Args:* `Object: p_parent`  
+*Returns:* void
+
+Sets the parent object.
+
+---
+
+### `set_create_child`
+
+*Args:* `Callable: p_method`  
+*Returns:* void
+
+Sets the callable used to create a new child.
+
+---
+
+### `set_add_child_method`
+
+*Args:* `Callable: p_method`  
+*Returns:* void
+
+Sets the callable used to add a single child.
+
+---
+
+### `set_add_children_method`
+
+*Args:* `Callable: p_method`  
+*Returns:* void
+
+Sets the callable used to add multiple children.
+
+---
+
+### `set_remove_child_method`
+
+*Args:* `Callable: p_method`  
+*Returns:* void
+
+Sets the callable used to remove a single child.
+
+---
+
+### `set_remove_children_method`
+
+*Args:* `Callable: p_method`  
+*Returns:* void
+
+Sets the callable used to remove multiple children.
+
+---
+
+### `set_get_children_method`
+
+*Args:* `Callable: p_method`  
+*Returns:* void
+
+Sets the callable used to get all children.
+
+---
+
+### `set_children_added`
+
+*Args:* `Signal: p_signal`  
+*Returns:* void
+
+Sets the signal to listen to for child additions. If a previous signal was connected, it is disconnected first. The new signal is connected to the internal addition handler immediately.
+
+---
+
+### `set_children_removed`
+
+*Args:* `Signal: p_signal`  
+*Returns:* void
+
+Sets the signal to listen to for child removals. If a previous signal was connected, it is disconnected first. The new signal is connected to the internal removal handler immediately.
+
+---
+
+### `set_index_class`
+
+*Args:* `Script: p_script`  
+*Returns:* void
+
+Sets the script assigned as the index class for this `ChildManager`.
+
+---
+
+### `set_child_class`
+
+*Args:* `Script: p_script`  
+*Returns:* void
+
+Sets the script that all child classes must inherit from.
+
+---
+
+### `is_read_only`
+
+*Args:* null  
+*Returns:* `bool`
+
+Returns `true` if any of the create, add, or remove callables are null. A read-only `ChildManager` can still retrieve children via [`get_children`](#get_children) but cannot modify them.
+
+---
+
+## Notes
+
+- [`modification_callback`](#modification_callback) is always emitted deferred, once per frame, batching all additions and removals that occurred during that frame into a single emission.
+- If a callable passed to any `set_*` method is null, the corresponding operation method (`add_child`, `remove_child`, etc.) will return a rejected `Promise` rather than erroring.
+- [`set_children_added`](#set_children_added) and [`set_children_removed`](#set_children_removed) handle signal reconnection automatically — it is safe to call them after initialisation to swap signals.

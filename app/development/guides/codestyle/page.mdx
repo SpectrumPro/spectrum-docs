@@ -1,0 +1,535 @@
+# GDScript Code Style Guide
+> This file defines the formatting, commenting, and structural rules for all GDScript files across the organisation.  
+> It is intended to be read and followed by both human authors and AI models generating or editing GDScript code.
+>
+> This guide is based on and extends the [official GDScript style guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html#naming-conventions). Where this guide differs from or extends the official guide, this guide takes precedence.
+
+---
+
+## Part 1 — Rules
+
+---
+
+### 1. General Philosophy
+
+- Consistency is more important than cleverness. Follow the rules even when a deviation might seem reasonable.
+- Code should be readable without needing to run it. Names, types, and comments should make intent clear.
+- Every public-facing identifier must have a doc comment. Every enum value must have an inline comment. No exceptions.
+
+---
+
+### 2. File Naming
+
+Every GDScript file must be named identically to its `class_name` declaration, with a `.gd` extension. This differs from the official Godot style guide, which recommends `snake_case` filenames.
+
+```
+class_name EngineComponent  →  EngineComponent.gd
+class_name ConstellationNode  →  ConstellationNode.gd
+class_name Data  →  Data.gd
+```
+
+This rule ensures that filenames are unambiguous, directly searchable by class name, and consistent across the codebase. Do not abbreviate, lowercase, or snake_case the filename.
+
+---
+
+### 3. File Structure
+
+Every GDScript file must follow this top-level order:
+
+```
+1.  File header (copyright block)
+2.  class_name and extends declaration
+3.  Class-level doc comment
+4.  @warning_ignore class-wide annotations (if any)
+5.  Signals
+6.  Constants
+7.  Enums
+8.  Public member variables
+9.  Private member variables
+10. Static factory functions (if any)
+11. _init / _static_init
+12. Public functions
+13. Private functions
+14. Static helper functions (if any)
+15. Inner classes (if any)
+```
+
+Sections that do not apply may be omitted entirely. Do not add placeholder comments for empty sections.
+
+---
+
+### 4. File Header
+
+Every file must begin with a copyright block. Each line uses a single `#` comment. The block must include the copyright year, author name, project name, and the licence the file is distributed under. A blank line separates the header from the class declaration.
+
+```gdscript
+# Copyright (c) {year} {author}. All rights reserved.
+# This file is part of {project name}, licensed under {licence}.
+# See the LICENSE file for details.
+```
+
+---
+
+### 5. Class Declaration
+
+The `class_name` and `extends` declarations appear immediately after the file header blank line, on a single line. `extends` must always be present, even if the class extends `Object` directly. A `##` doc comment describing the class follows on the very next line. There is no blank line between the declaration and its doc comment.
+
+```gdscript
+class_name MyClass extends ParentClass
+## Short description of what this class is and what it is responsible for.
+## Additional lines if needed. Keep it concise.
+```
+
+```gdscript
+class_name MyStaticUtil extends Object
+## A static utility class with no instantiable state.
+```
+
+---
+
+### 6. Warning Annotations
+
+#### 6.1 Class-Wide Suppression
+
+If a warning must be suppressed for the entire class, place `@warning_ignore_start` immediately after the class doc comment with one blank line between them. Class-wide suppression does not use `@warning_ignore_end` — the suppression applies to the whole file.
+
+```gdscript
+class_name MyClass extends ParentClass
+## Class description.
+
+@warning_ignore_start("unused_signal")
+
+
+## Emitted when ...
+signal something_happened()
+```
+
+#### 6.2 Single-Line Suppression
+
+Place `@warning_ignore` on the line immediately before the offending line.
+
+```gdscript
+@warning_ignore("return_value_discarded")
+some_method_with_ignored_return()
+```
+
+#### 6.3 Block Suppression
+
+To suppress warnings across a block of lines — such as an entire function — surround it with `@warning_ignore_start` and `@warning_ignore_end`.
+
+```gdscript
+@warning_ignore_start("unused_variable", "unused_parameter")
+func _some_override(_p_unused: String) -> void:
+	var temp: Variant = do_something()
+@warning_ignore_end("unused_variable", "unused_parameter")
+```
+
+---
+
+### 7. Naming Conventions
+
+| Identifier | Convention | Example |
+|------------|------------|---------|
+| Class names | `PascalCase` | `ConstellationNode` |
+| Constants | `SCREAMING_SNAKE_CASE` | `MCAST_GROUP` |
+| Enum objects | `PascalCase` | `TransportMode` |
+| Enum values | `SCREAMING_SNAKE_CASE` | `LOST_CONNECTION` |
+| Functions | `snake_case` | `send_message` |
+| Variables | `snake_case` | `node_name` |
+| Private functions | `_snake_case` | `_handle_packet` |
+| Private variables | `_snake_case` | `_node_id` |
+| Function parameters | `p_snake_case` | `p_node_name` |
+| Unused parameters | `_p_snake_case` | `_p_unused_arg` |
+| Static factory functions | `snake_case` | `create_from_discovery` |
+
+---
+
+### 8. Static Typing
+
+All identifiers must be explicitly typed. Do not rely on type inference, even when the type is obvious. This applies to variables, parameters, return types, and for-loop iteration variables. If a value may be more than one type, use `Variant`.
+
+```gdscript
+## Correct — type is explicit.
+var node_id: String = UUID.v4()
+var count: int
+var result: Variant = get_some_value()
+
+## Incorrect — type is inferred and must not be omitted.
+var node_id = UUID.v4()
+var count = 0
+```
+
+All functions must declare a return type. If a function returns nothing, declare `-> void`.
+
+```gdscript
+func get_node_id() -> String:
+	return _node_id
+
+func close() -> void:
+	_tcp_socket.disconnect_from_host()
+```
+
+---
+
+### 9. Blank Line Rules
+
+Blank lines are used to visually group related declarations. The rules are strict and must be followed exactly.
+
+| Situation | Blank lines |
+|-----------|-------------|
+| Between the file header and `class_name` | 1 |
+| Between the class doc comment and `@warning_ignore_start` | 1 |
+| Between `@warning_ignore_start` and the first signal | 1 |
+| Between the class doc comment and the first signal (no warning ignore) | 0 |
+| Between signals | 1 |
+| Between signals and the first constant or variable | 2 |
+| Between constants | 1 |
+| Between enums | 1 |
+| Between public variables | 1 |
+| Between the last public variable and the first private variable | 2 |
+| Between private variables | 1 |
+| Between the last variable and the first function | 2 |
+| Between functions | 2 |
+| Between static helper functions | 2 |
+| Between inner classes | 2 |
+| At the end of the file | 1 |
+
+Do not add extra blank lines inside a function body unless separating clearly distinct logical stages.
+
+---
+
+### 10. Signals
+
+Each signal is declared with a `##` doc comment on the line immediately above it. No blank line between the comment and the signal. Signals are separated from each other by one blank line.
+
+Signal arguments must be typed. Signals with no arguments must still include empty parentheses `()`.
+
+```gdscript
+## Emitted when the connection state of this node changes.
+signal connection_state_changed(state: ConnectionState)
+
+## Emitted when this object is ready to be used.
+signal ready()
+```
+
+---
+
+### 11. Constants
+
+Each constant is declared with a `##` doc comment on the line immediately above it. Constants are separated from each other by one blank line.
+
+Constants use `SCREAMING_SNAKE_CASE`.
+
+```gdscript
+## Maximum UDP payload size in bytes before fragmentation is required.
+const UDP_MTU: int = 1000
+
+## Multicast group address used for discovery.
+const MCAST_GROUP: String = "239.38.23.1"
+```
+
+---
+
+### 12. Variables
+
+#### 12.1 Public Variables
+
+Public variables have no `_` prefix. Each must have a `##` doc comment on the line immediately above it. Public variables are separated from each other by one blank line.
+
+```gdscript
+## Map of custom Data.Type values to their Godot Variant.Type equivalents.
+var custom_type_map: Dictionary[Data.Type, Variant.Type]
+
+## The current session this node belongs to.
+var session: ConstellationSession
+```
+
+#### 12.2 Private Variables
+
+Private variables are prefixed with `_`. Each must have a `##` doc comment on the line immediately above it. Private variables are separated from each other by one blank line. Two blank lines separate the last public variable from the first private variable.
+
+```gdscript
+## The NodeID of this node.
+var _node_id: String
+
+## The TCP socket used to communicate with the remote node.
+var _tcp_socket: StreamPeerTCP = StreamPeerTCP.new()
+```
+
+#### 12.3 Default Values
+
+Do not define a default value unless it differs from the GDScript default for that type, or the variable requires initialisation to a specific object or expression. Assigning the type's natural default (e.g. `false` for `bool`, `0` for `int`, `""` for `String`, `null` for objects) adds unnecessary stepping in the debugger and must be omitted.
+
+```gdscript
+## Correct — no default needed, GDScript initialises bool to false.
+var _connected: bool
+
+## Correct — default differs from the GDScript zero value.
+var _retry_count: int = 3
+
+## Correct — requires object initialisation.
+var _tcp_socket: StreamPeerTCP = StreamPeerTCP.new()
+
+## Incorrect — false is the GDScript default for bool.
+var _connected: bool = false
+
+## Incorrect — null is the GDScript default for objects.
+var _session: ConstellationSession = null
+```
+
+#### 12.4 Static Variables
+
+Static variables follow the same rules as their non-static equivalents. A `static` variable with no `_` prefix is public; with a `_` prefix it is private.
+
+```gdscript
+## The Constellation NetworkHandler shared across all instances.
+static var _network: Constellation
+```
+
+---
+
+### 13. Functions
+
+#### 13.1 Doc Comments
+
+Every function must have a `##` doc comment on the line immediately above it. No blank line between the comment and the `func` keyword. The comment must describe what the function does, not restate the function name.
+
+```gdscript
+## Sends a message to the remote node using the specified transport mode.
+func send_message(p_message: ConstaNetHeadder, p_mode: TransportMode = TransportMode.AUTO) -> Error:
+```
+
+#### 13.2 Signatures and Parameters
+
+All parameters must be typed and prefixed with `p_`. Return types must always be declared. If a function returns nothing, declare `-> void`. Default parameter values are permitted.
+
+If a parameter is not used in the function body — which may occur when overriding a superclass method — prefix it with `_p_` instead of `p_`. This suppresses the unused parameter warning without requiring a `@warning_ignore` annotation.
+
+```gdscript
+## Handles a network event. The event type is not used in this implementation.
+func _on_network_event(_p_event_type: int, p_data: PackedByteArray) -> void:
+	_process_data(p_data)
+```
+
+#### 13.3 Multiline Signatures
+
+When a function signature is too long to read comfortably on one line, each parameter goes on its own indented line. The closing `) -> ReturnType:` goes on its own line at the base indentation level.
+
+```gdscript
+## Initialises the ChildManager with all required references.
+func _init(
+	p_parent: Object,
+	p_add_child: Callable,
+	p_remove_child: Callable,
+	p_get_children: Callable,
+	p_children_added: Signal,
+	p_children_removed: Signal,
+) -> void:
+```
+
+#### 13.4 Static Factory Functions
+
+Static factory functions are placed before `_init`. They follow the same commenting and spacing rules as other functions. They must be named clearly as factory functions — the name should make it immediately obvious that a new instance is being created and what it is created from. Common patterns include `create_from_*`, `from_*`, and `make_*`, but any name that reads naturally as a factory is acceptable.
+
+```gdscript
+## Creates a new ConstellationNode populated from a received discovery packet.
+static func create_from_discovery(p_disco: ConstaNetDiscovery) -> ConstellationNode:
+
+## Creates a new session populated from a session announcement message.
+static func from_session_announce(p_message: ConstaNetSessionAnnounce) -> ConstellationSession:
+
+## Creates a placeholder node in an unknown state, identified only by its ID.
+static func make_unknown(p_node_id: String) -> ConstellationNode:
+```
+
+#### 13.5 Private Functions
+
+Private functions are prefixed with `_`. They follow the same commenting and spacing rules as public functions, but are placed after all public functions.
+
+#### 13.6 Static Helper Functions
+
+Static helper functions that are not factory functions are placed after all instance methods and before inner classes. They follow the same commenting and spacing rules as other functions.
+
+---
+
+### 14. Static Classes
+
+A static class is one that uses `_static_init` instead of `_init` and exposes only `static` members. Apply all the same rules with the following adjustments:
+
+- Replace `_init` with `_static_init` in the file structure order.
+- All variables and functions are declared with the `static` keyword.
+- Private static variables and functions still use the `_` prefix.
+- There are no instance methods, signals, or inner classes unless they are themselves static.
+
+---
+
+### 15. Inner Classes
+
+Inner classes are placed at the very end of the file. Each inner class follows all the same rules as a top-level class: file structure order, blank line rules, doc comments on every identifier, and naming conventions.
+
+An inner class begins with a `##` doc comment on the line immediately above the `class` keyword.
+
+```gdscript
+## Represents an incoming multipart message being reassembled.
+class IncomingMultiPart extends Object:
+	## The unique ID of this multipart message.
+	var id: String
+
+	## The number of expected chunks.
+	var num_of_chunks: int
+```
+
+---
+
+### 16. Line Length
+
+**Maximum line length: 120 characters.**
+
+This limit applies to all lines including comments. Break long lines using multiline function signatures (see section 13.3), GDScript's `\` line continuation, or by extracting intermediate variables.
+
+---
+
+## Part 2 — Annotated Example
+
+The following file demonstrates all rules applied together.
+
+```gdscript
+# Copyright (c) 2026 Liam Sherwin. All rights reserved.
+# This file is part of the Spectrum Lighting Engine, licensed under the GPL v3.0 or later.
+# See the LICENSE file for details.
+
+class_name ExampleNode extends NetworkNode
+## ExampleNode demonstrates the correct structure and formatting for a GBC-compatible class.
+## It manages a named resource with a priority value and can send it to a remote session.
+
+@warning_ignore_start("unused_signal")
+
+
+## Emitted when the priority value of this node changes.
+signal priority_changed(priority: int)
+
+## Emitted when the resource held by this node is replaced.
+signal resource_changed(resource: Resource)
+
+
+## Default priority assigned to a new node.
+const DEFAULT_PRIORITY: int = 0
+
+## Maximum allowed priority value.
+const MAX_PRIORITY: int = 100
+
+
+## Controls how this node sends its resource to the session.
+enum SendMode {
+	IMMEDIATE,	## Send the resource as soon as it changes.
+	DEFERRED,	## Queue the resource and send it at the end of the frame.
+	MANUAL,		## Only send when send_resource() is called explicitly.
+}
+
+
+## The resource managed by this node.
+var resource: Resource
+
+## The send mode used when transmitting the resource.
+var send_mode: SendMode
+
+
+## The priority of this node within its session.
+var _priority: int = DEFAULT_PRIORITY
+
+## True if a deferred send has already been queued this frame.
+var _send_queued: bool
+
+## The session this node currently belongs to.
+var _session: ExampleSession
+
+
+## Creates a new ExampleNode with the given resource pre-assigned.
+static func create_with_resource(p_resource: Resource) -> ExampleNode:
+	var node: ExampleNode = ExampleNode.new()
+	node.resource = p_resource
+	return node
+
+
+## Initialises the node, registering all required settings.
+func _init(p_uuid: String = UUID.v4()) -> void:
+	super._init(p_uuid)
+	_set_class_name("ExampleNode")
+
+
+## Sends the current resource to the session using the configured send mode.
+func send_resource() -> Error:
+	if not _session:
+		return ERR_UNAVAILABLE
+
+	return _session.send_command(resource)
+
+
+## Sets the priority of this node and notifies the session.
+func set_priority(p_priority: int) -> bool:
+	if p_priority == _priority:
+		return false
+
+	_priority = clamp(p_priority, 0, MAX_PRIORITY)
+	priority_changed.emit(_priority)
+	return true
+
+
+## Returns the current priority of this node.
+func get_priority() -> int:
+	return _priority
+
+
+## Returns true if this node currently holds a valid resource.
+func has_resource() -> bool:
+	return resource != null
+
+
+## Queues a deferred send if one is not already pending.
+func _queue_send() -> void:
+	if _send_queued:
+		return
+
+	_send_queued = true
+
+	(func() -> void:
+		send_resource()
+		_send_queued = false
+	).call_deferred()
+
+
+## Handles an incoming command from the session.
+func _handle_command(p_command: ConstaNetCommand) -> void:
+	if p_command.data_type != typeof(Resource):
+		return
+
+	resource = p_command.command
+	resource_changed.emit(resource)
+
+	if send_mode == SendMode.DEFERRED:
+		_queue_send()
+
+
+## Represents a pending resource transmission to a remote session.
+class PendingTransmission extends Object:
+	## The resource to be transmitted.
+	var resource: Resource
+
+	## The session the resource will be sent to.
+	var target_session: ExampleSession
+
+	## Unix timestamp of when this transmission was queued.
+	var queued_at: float
+
+
+	## Initialises the transmission with the given resource and target session.
+	func _init(p_resource: Resource, p_session: ExampleSession) -> void:
+		resource = p_resource
+		target_session = p_session
+		queued_at = Time.get_unix_time_from_system()
+
+
+	## Returns true if this transmission has been waiting longer than the given timeout.
+	func is_expired(p_timeout: float) -> bool:
+		return Time.get_unix_time_from_system() - queued_at > p_timeout
+```

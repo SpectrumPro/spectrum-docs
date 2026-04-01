@@ -27,7 +27,7 @@ Document the following:
 - **Constants** — all public constants, in a table. **Exception: do not document constants that are defined purely as enum aliases from another class** (e.g. `const MessageType: ConstaNetHeadder.Type = ConstaNetHeadder.Type`). These add no information beyond what is already in the source class. Wherever such a constant would be referenced in the documentation, replace it with the fully qualified original type (e.g. use `ConstaNetHeadder.Type` not `MessageType`).
 - **Enums** — all public enums defined in the class, each in their own `###` subsection with a value table
 - **SettingsManager entries** — all settings registered via `_settings.register_setting()`, `_settings.register_control()`, or `_settings.register_status()`, in a single table
-- **`_init`** — always document `_init`, even if it takes no arguments. Use `*Args:* null` if there are none
+- **`_init`** — always document `_init`, even if it takes no arguments. Use `*Args:* null` if there are none. **Exception: if the class is a static class that defines `_static_init` instead of `_init`, do not add a `_init` entry to the Public API.** Static classes are not instantiated and have no constructor to document.
 - **Public API** — all public methods and properties (those without a `_` prefix)
 - **Inner classes** — documented as their own section within the same file, following the same rules
 - **Command-line arguments** — if the class parses `OS.get_cmdline_args()`, document each flag
@@ -35,7 +35,7 @@ Document the following:
 
 Do **not** document the following:
 
-- Private methods and variables (any identifier prefixed with `_`), **with the sole exception of `_init`**
+- Private methods and variables (any identifier prefixed with `_`), **with the sole exception of `_init` in non-static classes**
 - Internal implementation details (socket polling loops, buffer management, etc.)
 - GDScript lifecycle methods other than `_init` (`_process`, `_notification`, etc.) unless they form part of the public contract
 - Transient internal state variables that have no public accessor
@@ -60,6 +60,7 @@ Short class description paragraph
 ## Constants
 ## Enums                         (if applicable)
 ## SettingsManager Entries       (if applicable)
+## Member Variables              (if applicable)
 ## Public API
 ## Command-Line Arguments        (if applicable)
 ## InnerClassName                (one section per inner class)
@@ -171,7 +172,30 @@ If a class registers settings via its `_settings` (`SettingsManager`) member, do
 - `CONTROL` — a value intended to be actively modified at runtime.
 - `STATUS` — read-only. Reflects internal state; cannot be set externally.
 
-#### 3.9 Enum Alias Constants
+#### 3.9 Member Variables
+
+Public member variables (those without a `_` prefix) and public static variables are documented under `## Member Variables`. Each variable gets its own `###` heading. Document the data type, default value if one is explicitly set in the source, and a description. Use cross-references where the type is documented elsewhere in the same file.
+
+```markdown
+## Member Variables
+
+### `variable_name`
+
+*DataType:* `Type`  
+*Default:* `value`  
+Description. Cross-reference to related types or sections where relevant. See [`Type`](#type).
+
+---
+
+### `another_variable`
+
+*DataType:* `Type`  
+Description. Omit `*Default:*` if no default is explicitly set in the source.
+```
+
+If a variable has no explicitly set default value in the source, omit the `*Default:*` line entirely — do not guess or infer one.
+
+#### 3.10 Enum Alias Constants
 
 Constants that exist solely to alias an enum from another class (e.g. `const MessageType: ConstaNetHeadder.Type = ConstaNetHeadder.Type`) must **not** be included in the Constants table. They carry no independent meaning and their presence in the table would be misleading.
 
@@ -180,7 +204,7 @@ When one of these aliased names would appear elsewhere in the documentation (e.g
 - ✓ `ConstaNetHeadder.Type`
 - ✗ `MessageType`
 
-#### 3.10 Signals
+#### 3.11 Signals
 
 Each signal gets its own `###` heading:
 
@@ -193,7 +217,7 @@ Description of when this signal is emitted and what the argument contains.
 
 If a signal has no arguments, write `*Args:* null`.
 
-#### 3.11 Inner Classes
+#### 3.12 Inner Classes
 
 Inner classes are documented as a `##` section within the same file. They follow the same structure as the top-level class, with two differences: the metadata line uses `*Defined in:*` with no link (the file link is already present in the outer class header), and member variables use `####` headings grouped under a `### Member Variables` heading.
 
@@ -223,7 +247,7 @@ Description.
 ...
 ```
 
-#### 3.12 Untyped Parameters and Missing Defaults
+#### 3.13 Untyped Parameters and Missing Defaults
 
 GDScript allows untyped parameters and properties. When a parameter or return type is not explicitly declared in the source, use `Variant` as the type. When a default value is not explicitly specified, omit the `= default` portion entirely — do not guess or infer a value.
 
@@ -233,7 +257,7 @@ GDScript allows untyped parameters and properties. When a parameter or return ty
 - `String: p_name = ""`    # type and default both declared
 ```
 
-#### 3.13 Code Examples
+#### 3.14 Code Examples
 
 Use fenced code blocks with the appropriate language tag:
 
@@ -246,7 +270,7 @@ Use fenced code blocks with the appropriate language tag:
 constellation.start_node()
 ```
 
-#### 3.14 Cross-References
+#### 3.15 Cross-References
 
 When referencing another documented method, class, or section within the same repo, use a Markdown link anchored to the heading:
 
@@ -257,7 +281,7 @@ When referencing another documented method, class, or section within the same re
 
 Use backticks inside the link label for any identifier (method, class, variable name).
 
-#### 3.15 Horizontal Rules
+#### 3.16 Horizontal Rules
 
 Use `---` to separate major sections. Do not use `---` between individual method entries within a section — let headings provide the visual separation.
 
@@ -299,12 +323,13 @@ When generating documentation from a source file, follow this process in order:
 3. **List all public identifiers** (no `_` prefix): signals, constants, enums, member variables, methods, inner classes. Also include `_init`.
 4. **Discard all other private identifiers** (`_` prefix, excluding `_init`). Do not reference them anywhere in the output, even parenthetically.
 5. **Filter enum alias constants.** Any constant defined as `const X: SomeClass.Enum = SomeClass.Enum` is an alias and must be excluded from the Constants table. When that name would appear in descriptions, replace it with the fully qualified original (e.g. `ConstaNetHeadder.Type`, not `MessageType`).
-6. **Always document `_init`**, even if it takes no arguments. Place it as the first entry under `## Public API`. Use `*Args:* null` if there are no parameters.
+6. **Always document `_init`**, even if it takes no arguments. Place it as the first entry under `## Public API`. Use `*Args:* null` if there are no parameters. **Exception: if the class defines `_static_init` instead of `_init`, it is a static class — do not add a `_init` entry at all.**
 7. **For each public method and `_init`**, determine: what it does, what arguments it takes (names, types, defaults), what it returns, and any side effects or error conditions visible from the source.
 8. **Use `Variant` for any parameter, return type, or property with no explicit type annotation** in the source. Do not infer or assume a type.
 9. **Omit default values** for any parameter that does not have one explicitly stated in the source signature.
 10. **Document all enums** under `## Enums`, each as a `###` subsection with a value table. Integer values must be taken from the source exactly.
-11. **Document all `_settings` registrations** under `## SettingsManager Entries` as a single table. Identify the EntryType from the registration method: `register_setting` → `SETTING`, `register_control` → `CONTROL`, `register_status` → `STATUS`.
+11. **Document all public member variables and static variables** under `## Member Variables`, each as a `###` entry with `*DataType:*`, `*Default:*` (if explicitly set in source), and a description. Omit `*Default:*` if no default is set. Place this section directly before `## Public API`.
+12. **Document all `_settings` registrations** under `## SettingsManager Entries` as a single table. Identify the EntryType from the registration method: `register_setting` → `SETTING`, `register_control` → `CONTROL`, `register_status` → `STATUS`.
 12. **Write each section in the order defined in the template below.** Do not reorder sections.
 13. **Do not pad output.** If a section has no content (e.g., no signals), omit the section header entirely.
 14. **Validate against the rules** in sections 2–5 before finalising output.
@@ -388,6 +413,23 @@ Description of what this enum represents and where it is used.
 
 ---
 
+## Member Variables
+
+### `variable_name`
+
+*DataType:* `Type`  
+*Default:* `value`  
+Description.
+
+---
+
+### `variable_no_default`
+
+*DataType:* `Type`  
+Description.
+
+---
+
 ## Public API
 
 ### `_init`
@@ -419,9 +461,9 @@ Description.
 Description of what this flag overrides and how it affects runtime behaviour.
 
 **Example:**
-```bash
+\```bash
 --flag-name value
-```
+\```
 
 ---
 
@@ -463,3 +505,4 @@ Description.
 ## Notes
 
 - Any non-obvious platform behaviour, ordering constraints, or gotchas that do not belong in individual method entries.
+```

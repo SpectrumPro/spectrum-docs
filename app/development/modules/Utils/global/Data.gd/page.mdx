@@ -1,0 +1,138 @@
+# `Data`
+*source:* [`Data.gd`](https://github.com/SpectrumPro/Spectrum/blob/main/Data.gd)
+
+**Copyright (c) 2026  
+Liam Sherwin — All rights reserved.  
+Licensed under GPLv3**
+
+`Data` is a static utility class that defines custom data types, serialization flags, and network flags used across the Spectrum Lighting Engine. It provides the canonical `Type` enum used throughout the codebase to describe and identify data, along with a mapping from those types to their underlying GDScript `Variant.Type` equivalents, and a small set of static utility methods for type comparison and conversion.
+
+---
+
+## Enums
+
+### `Type`
+
+The primary type enum used across the engine to identify and describe data values.
+
+| Name | Value | Description |
+|------|-------|-------------|
+| `NULL` | `0` | Represents no value. |
+| `ANY` | `1` | Represents an untyped `Variant`. |
+| `STRING` | `2` | A text string. |
+| `BOOL` | `3` | A true/false boolean. |
+| `INT` | `4` | A 64-bit integer. |
+| `FLOAT` | `5` | A floating-point number. |
+| `ARRAY` | `6` | A dynamic array of values. |
+| `DICTIONARY` | `7` | A key/value map. |
+| `VECTOR2` | `8` | A 2D vector (x, y) with floats. |
+| `VECTOR2I` | `9` | A 2D vector (x, y) with integers. |
+| `RECT2` | `10` | A 2D rectangle defined by position and size, using floats. |
+| `RECT2I` | `11` | A 2D rectangle defined by position and size, using integers. |
+| `VECTOR3` | `12` | A 3D vector (x, y, z) with floats. |
+| `VECTOR3I` | `13` | A 3D vector (x, y, z) with integers. |
+| `VECTOR4` | `14` | A 4D vector (x, y, z, w) with floats. |
+| `VECTOR4I` | `15` | A 4D vector (x, y, z, w) with integers. |
+| `COLOR` | `16` | A colour with red, green, blue, and alpha channels. |
+| `OBJECT` | `17` | A reference to any Godot `Object`. |
+| `CALLABLE` | `18` | A callable function reference. |
+| `SIGNAL` | `19` | A signal reference. |
+| `ENUM` | `20` | An enumerator value. |
+| `BITFLAGS` | `21` | A bitmask of flags. |
+| `IP` | `22` | An IP address, stored as a `IPAddr` object. |
+| `INPUTEVENT` | `23` | A Godot `InputEvent`. |
+| `SETTINGSMANAGER` | `24` | A `SettingsManager` instance. |
+| `PACKEDSCENE` | `25` | A `PackedScene` resource. |
+| `ACTION` | `26` | A triggerable action. |
+
+---
+
+### `SerializationFlags`
+
+Flags that control serialization behaviour. These are bitmask values and may be combined.
+
+| Name | Value | Description |
+|------|-------|-------------|
+| `NONE` | `0` | No special serialization behaviour. |
+| `REALTIME` | `1` | Include realtime data that is not normally saved. Useful for state synchronisation. |
+| `NO_UUID` | `2` | Exclude the object's UUID. Useful when duplicating objects. |
+
+---
+
+### `NetworkFlags`
+
+Flags that control how an object participates in network serialization. These are bitmask values and may be combined.
+
+| Name | Value | Description |
+|------|-------|-------------|
+| `NONE` | `0` | No special network behaviour. |
+| `ALLOW_SERIALIZE` | `1` | Allow the object to be serialized in outgoing messages. |
+| `ALLOW_DESERIALIZE` | `2` | Allow the object to be deserialized from incoming messages. |
+| `ALLOW_UNRESOLVED` | `4` | Return the object's UUID if the object cannot be resolved, rather than failing. |
+
+---
+
+## Member Variables
+
+### `Sub`
+
+*DataType:* `DataConfig.SubType`  
+An instance of `DataConfig.SubType` exposing sub-type definitions sourced from `DataConfig`. Provides access to additional type values beyond those defined in [`Type`](#type). Use as `Data.Sub.VALUE_NAME`.
+
+---
+
+### `custom_type_map`
+
+*DataType:* `Dictionary[Type, Variant.Type]`  
+A static dictionary mapping each [`Type`](#type) value to its corresponding GDScript `Variant.Type`. Used to determine the underlying Godot type for a given `Data.Type`. Several `Data.Type` values share a base `Variant.Type` — for example, `ENUM` and `BITFLAGS` both map to `TYPE_INT`, and `IP` maps to `TYPE_OBJECT` as `IP` is stored as an `IPAddr` object.
+
+---
+
+## Public API
+
+### `do_types_match_base`
+
+*Args:*
+- `Type: p_type_one`
+- `Type: p_type_two`
+
+*Returns:* `bool`
+
+Returns `true` if both given `Data.Type` values share the same underlying `Variant.Type` in [`custom_type_map`](#custom_type_map). Useful for checking type compatibility without requiring an exact `Data.Type` match.
+
+---
+
+### `custom_type_to_string`
+
+*Args:*
+- `Variant: p_variant`
+- `Type: p_orignal_type`
+
+*Returns:* `String`
+
+Converts a value to a human-readable string, taking the original `Data.Type` into account. If a custom conversion callable has been configured via `DataConfig`, it is called first. If the callable is not set or does not return a `String`, the value is converted using GDScript's built-in `type_convert`.
+
+---
+
+### `get_object_name_changed_signal`
+
+*Args:* `SettingsModule: p_module`  
+*Returns:* `Signal`
+
+Returns the signal emitted when the name of the object held by the given `SettingsModule` changes. If a custom callable is configured via `DataConfig`, it is used to resolve the signal. Otherwise, the method falls back to returning the `renamed` signal if the object is a `Node`, or an empty `Signal()` if it is not.
+
+---
+
+### `get_object_db`
+
+*Args:* `Object: p_object`  
+*Returns:* `ObjectDB`
+
+Returns the `ObjectDB` that the given object's type belongs to. If no custom callable is configured via `DataConfig`, returns `null`.
+
+---
+
+## Notes
+
+- `Data` is a static class. All members and methods are static or class-level. It is not expected to be instantiated.
+- `custom_type_to_string`, `get_object_name_changed_signal`, and `get_object_db` all depend on callables configured in `DataConfig`. Behaviour may vary or fall back to defaults if `DataConfig` is not present or the callables are not set.
