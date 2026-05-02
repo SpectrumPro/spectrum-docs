@@ -1,6 +1,5 @@
 # GDScript Code Style Guide
 > This file defines the formatting, commenting, and structural rules for all GDScript files across the organisation.  
-> It is intended to be read and followed by both human authors and AI models generating or editing GDScript code.
 >
 > This guide is based on and extends the [official GDScript style guide](https://docs.godotengine.org/en/stable/tutorials/scripting/gdscript/gdscript_styleguide.html#naming-conventions). Where this guide differs from or extends the official guide, this guide takes precedence.
 
@@ -8,20 +7,9 @@
 
 ## Part 1 — Rules
 
----
+### 1. File Naming
 
-### 1. General Philosophy
-
-- Consistency is more important than cleverness. Follow the rules even when a deviation might seem reasonable.
-- Code should be readable without needing to run it. Names, types, and comments should make intent clear.
-- Every public-facing identifier must have a doc comment. Every enum value must have an inline comment. No exceptions.
-
----
-
-### 2. File Naming
-
-Every GDScript file must be named identically to its `class_name` declaration, with a `.gd` extension. This differs from the official Godot style guide, which recommends `snake_case` filenames.
-
+Every GDScript file must be named identically to its `class_name` declaration, with a `.gd` extension. 
 ```
 class_name EngineComponent  →  EngineComponent.gd
 class_name ConstellationNode  →  ConstellationNode.gd
@@ -32,7 +20,7 @@ This rule ensures that filenames are unambiguous, directly searchable by class n
 
 ---
 
-### 3. File Structure
+### 2. File Structure
 
 Every GDScript file must follow this top-level order:
 
@@ -41,8 +29,8 @@ Every GDScript file must follow this top-level order:
 2.  class_name and extends declaration
 3.  Class-level doc comment
 4.  @warning_ignore class-wide annotations (if any)
-5.  Signals
-6.  Constants
+5.  Constants
+6.  Signals
 7.  Enums
 8.  Public member variables
 9.  Private member variables
@@ -58,7 +46,7 @@ Sections that do not apply may be omitted entirely. Do not add placeholder comme
 
 ---
 
-### 4. File Header
+### 3. File Header
 
 Every file must begin with a copyright block. Each line uses a single `#` comment. The block must include the copyright year, author name, project name, and the licence the file is distributed under. A blank line separates the header from the class declaration.
 
@@ -70,7 +58,7 @@ Every file must begin with a copyright block. Each line uses a single `#` commen
 
 ---
 
-### 5. Class Declaration
+### 4. Class Declaration
 
 The `class_name` and `extends` declarations appear immediately after the file header blank line, on a single line. `extends` must always be present, even if the class extends `Object` directly. A `##` doc comment describing the class follows on the very next line. There is no blank line between the declaration and its doc comment.
 
@@ -87,9 +75,9 @@ class_name MyStaticUtil extends Object
 
 ---
 
-### 6. Warning Annotations
+### 5. Warning Annotations
 
-#### 6.1 Class-Wide Suppression
+#### 5.1 Class-Wide Suppression
 
 If a warning must be suppressed for the entire class, place `@warning_ignore_start` immediately after the class doc comment with one blank line between them. Class-wide suppression does not use `@warning_ignore_end` — the suppression applies to the whole file.
 
@@ -104,7 +92,7 @@ class_name MyClass extends ParentClass
 signal something_happened()
 ```
 
-#### 6.2 Single-Line Suppression
+#### 5.2 Single-Line Suppression
 
 Place `@warning_ignore` on the line immediately before the offending line.
 
@@ -113,7 +101,7 @@ Place `@warning_ignore` on the line immediately before the offending line.
 some_method_with_ignored_return()
 ```
 
-#### 6.3 Block Suppression
+#### 5.3 Block Suppression
 
 To suppress warnings across a block of lines — such as an entire function — surround it with `@warning_ignore_start` and `@warning_ignore_end`.
 
@@ -126,7 +114,7 @@ func _some_override(_p_unused: String) -> void:
 
 ---
 
-### 7. Naming Conventions
+### 6. Naming Conventions
 
 | Identifier | Convention | Example |
 |------------|------------|---------|
@@ -144,7 +132,7 @@ func _some_override(_p_unused: String) -> void:
 
 ---
 
-### 8. Static Typing
+### 7. Static Typing
 
 All identifiers must be explicitly typed. Do not rely on type inference, even when the type is obvious. This applies to variables, parameters, return types, and for-loop iteration variables. If a value may be more than one type, use `Variant`.
 
@@ -171,9 +159,9 @@ func close() -> void:
 
 ---
 
-### 9. Blank Line Rules
+### 8. Blank Line Rules
 
-Blank lines are used to visually group related declarations. The rules are strict and must be followed exactly.
+Blank lines are used to visually group related declarations.
 
 | Situation | Blank lines |
 |-----------|-------------|
@@ -194,11 +182,8 @@ Blank lines are used to visually group related declarations. The rules are stric
 | Between inner classes | 2 |
 | At the end of the file | 1 |
 
-Do not add extra blank lines inside a function body unless separating clearly distinct logical stages.
 
----
-
-### 10. Signals
+###  9. Signals
 
 Each signal is declared with a `##` doc comment on the line immediately above it. No blank line between the comment and the signal. Signals are separated from each other by one blank line.
 
@@ -214,7 +199,7 @@ signal ready()
 
 ---
 
-### 11. Constants
+### 10. Constants
 
 Each constant is declared with a `##` doc comment on the line immediately above it. Constants are separated from each other by one blank line.
 
@@ -230,9 +215,9 @@ const MCAST_GROUP: String = "239.38.23.1"
 
 ---
 
-### 12. Variables
+### 11. Variables
 
-#### 12.1 Public Variables
+#### 11.1 Public Variables
 
 Public variables have no `_` prefix. Each must have a `##` doc comment on the line immediately above it. Public variables are separated from each other by one blank line.
 
@@ -244,7 +229,7 @@ var custom_type_map: Dictionary[Data.Type, Variant.Type]
 var session: ConstellationSession
 ```
 
-#### 12.2 Private Variables
+#### 11.2 Private Variables
 
 Private variables are prefixed with `_`. Each must have a `##` doc comment on the line immediately above it. Private variables are separated from each other by one blank line. Two blank lines separate the last public variable from the first private variable.
 
@@ -256,7 +241,7 @@ var _node_id: String
 var _tcp_socket: StreamPeerTCP = StreamPeerTCP.new()
 ```
 
-#### 12.3 Default Values
+#### 11.3 Default Values
 
 Do not define a default value unless it differs from the GDScript default for that type, or the variable requires initialisation to a specific object or expression. Assigning the type's natural default (e.g. `false` for `bool`, `0` for `int`, `""` for `String`, `null` for objects) adds unnecessary stepping in the debugger and must be omitted.
 
@@ -277,7 +262,7 @@ var _connected: bool = false
 var _session: ConstellationSession = null
 ```
 
-#### 12.4 Static Variables
+#### 11.4 Static Variables
 
 Static variables follow the same rules as their non-static equivalents. A `static` variable with no `_` prefix is public; with a `_` prefix it is private.
 
@@ -288,9 +273,9 @@ static var _network: Constellation
 
 ---
 
-### 13. Functions
+### 12. Functions
 
-#### 13.1 Doc Comments
+#### 12.1 Doc Comments
 
 Every function must have a `##` doc comment on the line immediately above it. No blank line between the comment and the `func` keyword. The comment must describe what the function does, not restate the function name.
 
@@ -299,11 +284,11 @@ Every function must have a `##` doc comment on the line immediately above it. No
 func send_message(p_message: ConstaNetHeadder, p_mode: TransportMode = TransportMode.AUTO) -> Error:
 ```
 
-#### 13.2 Signatures and Parameters
+#### 12.2 Signatures and Parameters
 
 All parameters must be typed and prefixed with `p_`. Return types must always be declared. If a function returns nothing, declare `-> void`. Default parameter values are permitted.
 
-If a parameter is not used in the function body — which may occur when overriding a superclass method — prefix it with `_p_` instead of `p_`. This suppresses the unused parameter warning without requiring a `@warning_ignore` annotation.
+If a parameter is not used in the function body, which may occur when overriding a superclass method. Prefix it with `_p_` instead of `p_`. This suppresses the unused parameter warning without requiring a `@warning_ignore` annotation.
 
 ```gdscript
 ## Handles a network event. The event type is not used in this implementation.
@@ -311,7 +296,7 @@ func _on_network_event(_p_event_type: int, p_data: PackedByteArray) -> void:
 	_process_data(p_data)
 ```
 
-#### 13.3 Multiline Signatures
+#### 12.3 Multiline Signatures
 
 When a function signature is too long to read comfortably on one line, each parameter goes on its own indented line. The closing `) -> ReturnType:` goes on its own line at the base indentation level.
 
@@ -327,9 +312,9 @@ func _init(
 ) -> void:
 ```
 
-#### 13.4 Static Factory Functions
+#### 12.4 Static Factory Functions
 
-Static factory functions are placed before `_init`. They follow the same commenting and spacing rules as other functions. They must be named clearly as factory functions — the name should make it immediately obvious that a new instance is being created and what it is created from. Common patterns include `create_from_*`, `from_*`, and `make_*`, but any name that reads naturally as a factory is acceptable.
+Static factory functions are placed before `_init`. They follow the same commenting and spacing rules as other functions. They must be named clearly as factory functions, the name should make it immediately obvious that a new instance is being created and what it is created from. Common patterns include `create_from_*`, `from_*`, and `make_*`, but any name that reads naturally as a factory is acceptable.
 
 ```gdscript
 ## Creates a new ConstellationNode populated from a received discovery packet.
@@ -342,28 +327,27 @@ static func from_session_announce(p_message: ConstaNetSessionAnnounce) -> Conste
 static func make_unknown(p_node_id: String) -> ConstellationNode:
 ```
 
-#### 13.5 Private Functions
+#### 12.5 Private Functions
 
 Private functions are prefixed with `_`. They follow the same commenting and spacing rules as public functions, but are placed after all public functions.
 
-#### 13.6 Static Helper Functions
+#### 12.6 Static Helper Functions
 
 Static helper functions that are not factory functions are placed after all instance methods and before inner classes. They follow the same commenting and spacing rules as other functions.
 
 ---
 
-### 14. Static Classes
+### 13. Static Classes
 
 A static class is one that uses `_static_init` instead of `_init` and exposes only `static` members. Apply all the same rules with the following adjustments:
 
 - Replace `_init` with `_static_init` in the file structure order.
 - All variables and functions are declared with the `static` keyword.
 - Private static variables and functions still use the `_` prefix.
-- There are no instance methods, signals, or inner classes unless they are themselves static.
 
 ---
 
-### 15. Inner Classes
+### 14. Inner Classes
 
 Inner classes are placed at the very end of the file. Each inner class follows all the same rules as a top-level class: file structure order, blank line rules, doc comments on every identifier, and naming conventions.
 
@@ -381,7 +365,7 @@ class IncomingMultiPart extends Object:
 
 ---
 
-### 16. Line Length
+### 15. Line Length
 
 **Maximum line length: 120 characters.**
 
@@ -412,19 +396,19 @@ signal priority_changed(priority: int)
 signal resource_changed(resource: Resource)
 
 
-## Default priority assigned to a new node.
-const DEFAULT_PRIORITY: int = 0
-
-## Maximum allowed priority value.
-const MAX_PRIORITY: int = 100
-
-
 ## Controls how this node sends its resource to the session.
 enum SendMode {
 	IMMEDIATE,	## Send the resource as soon as it changes.
 	DEFERRED,	## Queue the resource and send it at the end of the frame.
 	MANUAL,		## Only send when send_resource() is called explicitly.
 }
+
+
+## Default priority assigned to a new node.
+const DEFAULT_PRIORITY: int = 0
+
+## Maximum allowed priority value.
+const MAX_PRIORITY: int = 100
 
 
 ## The resource managed by this node.

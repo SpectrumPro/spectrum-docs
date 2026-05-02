@@ -8,8 +8,9 @@ import { Callout } from 'nextra/components'
 
 *Introduction & Overview*
 
-The **Constellation Network Protocol (ConstaNet)** is a lightweight, device-to-device communication system designed for real-time distributed control.  
-It allows controllers, execution nodes, relays, and interactive devices to discover each other, synchronize state, exchange commands, form sessions, and negotiate capabilities.
+The **Constellation Network Protocol (ConstaNet)** is a lightweight, device-to-device communication system designed for real-time distributed control. 
+
+It allows controllers, execution nodes, and interactive devices to discover each other, synchronize state, exchange commands, form sessions, and negotiate capabilities.
 
 Constellation uses **dynamic port assignment**, allowing multiple Constellation nodes to operate on the same physical device and network interface without conflict.
 
@@ -22,7 +23,7 @@ ConstaNet operates as a **header + payload** protocol:
 - The **header** is defined by [`ConstaNetHeadder`](/constellation/packets/Headder)  
 - The **payload** is defined by the specific packet subtype (e.g., `ConstaNetDiscovery`, `ConstaNetCommand`, etc.)
 
-Communication is symmetrical — every node in the Constellation network can **send** and **receive** all packet types.
+Communication is symmetrical, every node in the Constellation network can **send** and **receive** all packet types.
 
 ---
 
@@ -173,4 +174,3 @@ ConstaNet provides a **reliable**, **extensible**, and **efficient** foundation 
 It manages device discovery, command execution, session logic, and data interchange using a consistent, well-defined packet architecture.
 
 The following pages document each packet type and the binary data formats used throughout Constellation.
-

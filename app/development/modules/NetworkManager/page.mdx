@@ -10,6 +10,6 @@ import { Callout } from 'nextra/components'
 
 The **NetworkManager** is a high-level abstraction layer providing a unified interface for network communication across multiple protocols.  
 
-It defines a set of **base classes and interfaces intended to be extended by protocol-specific implementations**, allowing different network backends — such as Constellation or custom transports — to coexist within the same project without leaking protocol-specific logic into the broader codebase.
+It defines a set of **base classes and interfaces intended to be extended by protocol-specific implementations**, allowing different network backends. Such as Constellation or custom transports, to coexist within the same project without leaking protocol-specific logic into the broader codebase.
 
-The rest of the application interacts exclusively with the **NetworkManager API**, remaining entirely agnostic to the underlying transport — swapping or combining protocols requires no changes outside of the implementation layer itself.
+The rest of the application interacts exclusively with the **NetworkManager API**, remaining entirely agnostic to the underlying transport, swapping or combining protocols requires no changes outside of the implementation layer itself.

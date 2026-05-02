@@ -1,24 +1,10 @@
 # GDScript Documentation Guide
 > This file defines the rules and template for writing API documentation across all GDScript codebases in the organisation.  
-> It is intended to be read and followed by both human authors and AI models generating documentation from source code.
 
----
 
 ## Part 1 — Rules
 
----
-
-### 1. General Philosophy
-
-- Documentation describes **what** a thing does and **why it matters**, not **how** it is implemented internally.
-- Write for an audience that is **technically competent but unfamiliar with this specific codebase**. Do not over-explain GDScript or Godot basics. Do not under-explain domain-specific behaviour.
-- Every documented item must be **accurate to the source**. If something is unclear in the code, document what the code actually does — not what it might intend to do.
-- Do not copy GDScript doc comments verbatim. Rewrite them in prose that reads naturally in a reference document.
-- Keep descriptions **concise but complete**. Prefer one clear sentence over three vague ones.
-
----
-
-### 2. What to Document
+### 1. What to Document
 
 Document the following:
 
@@ -36,15 +22,14 @@ Document the following:
 Do **not** document the following:
 
 - Private methods and variables (any identifier prefixed with `_`), **with the sole exception of `_init` in non-static classes**
-- Internal implementation details (socket polling loops, buffer management, etc.)
 - GDScript lifecycle methods other than `_init` (`_process`, `_notification`, etc.) unless they form part of the public contract
-- Transient internal state variables that have no public accessor
+- Internal state variables that have no public accessor
 
 ---
 
-### 3. Formatting & Markdown Style
+### 2. Formatting & Markdown Style
 
-#### 3.1 File Structure
+#### 2.1 File Structure
 
 Every documentation file must follow this top-level order:
 
@@ -57,17 +42,17 @@ Short class description paragraph
 ---
 
 ## Signals
+## Enums
 ## Constants
-## Enums                         (if applicable)
-## SettingsManager Entries       (if applicable)
-## Member Variables              (if applicable)
+## SettingsManager Entries
+## Member Variables
 ## Public API
-## Command-Line Arguments        (if applicable)
-## InnerClassName                (one section per inner class)
-## Notes                         (if applicable)
+## Command-Line Arguments
+## InnerClassName
+## Notes
 ```
 
-#### 3.2 Headings
+#### 2.2 Headings
 
 | Level | Used for |
 |-------|----------|
@@ -77,7 +62,7 @@ Short class description paragraph
 
 Never skip heading levels. Never use `####` or deeper for primary content — use bold text or tables instead.
 
-#### 3.3 Metadata Line
+#### 2.3 Metadata Line
 
 Immediately below the `#` heading, add an italic metadata line:
 
@@ -87,7 +72,7 @@ Immediately below the `#` heading, add an italic metadata line:
 
 If there is no parent beyond `Object`, omit the `extends` portion.
 
-#### 3.4 Copyright Block
+#### 2.4 Copyright Block
 
 Immediately below the metadata line:
 
@@ -97,7 +82,7 @@ Author Name — All rights reserved.
 Licensed under GPLv3**
 ```
 
-#### 3.5 Method / Property Entries
+#### 2.5 Method / Property Entries
 
 Each public method or property entry follows this exact structure:
 
@@ -119,7 +104,7 @@ If a method takes no arguments, write `*Args:* null`.
 If a method returns nothing, write `*Returns:* void`.  
 If a method returns nothing meaningful (i.e., `void`), still include the line for consistency.
 
-#### 3.6 Constants Table
+#### 2.6 Constants Table
 
 All constants in a class must be documented together in a single Markdown table:
 
@@ -131,7 +116,7 @@ All constants in a class must be documented together in a single Markdown table:
 
 Do not document each constant as a separate `###` heading.
 
-#### 3.7 Enums
+#### 2.7 Enums
 
 Each enum gets its own `###` heading under `## Enums`. Document every named value in a table with its integer value and a description. The integer values must match the source exactly — do not assume GDScript's default auto-increment if values are not explicit; look them up or ask.
 
@@ -146,7 +131,7 @@ Description of what this enum represents and where it is used.
 | `VALUE_B` | `1` | Description. |
 ```
 
-#### 3.8 SettingsManager Entries
+#### 2.8 SettingsManager Entries
 
 If a class registers settings via its `_settings` (`SettingsManager`) member, document all of them together in a single table under `## SettingsManager Entries`. The table has four columns: Name, DataType, EntryType, and Description.
 
@@ -172,7 +157,7 @@ If a class registers settings via its `_settings` (`SettingsManager`) member, do
 - `CONTROL` — a value intended to be actively modified at runtime.
 - `STATUS` — read-only. Reflects internal state; cannot be set externally.
 
-#### 3.9 Member Variables
+#### 2.9 Member Variables
 
 Public member variables (those without a `_` prefix) and public static variables are documented under `## Member Variables`. Each variable gets its own `###` heading. Document the data type, default value if one is explicitly set in the source, and a description. Use cross-references where the type is documented elsewhere in the same file.
 
@@ -195,7 +180,7 @@ Description. Omit `*Default:*` if no default is explicitly set in the source.
 
 If a variable has no explicitly set default value in the source, omit the `*Default:*` line entirely — do not guess or infer one.
 
-#### 3.10 Enum Alias Constants
+#### 2.10 Enum Alias Constants
 
 Constants that exist solely to alias an enum from another class (e.g. `const MessageType: ConstaNetHeadder.Type = ConstaNetHeadder.Type`) must **not** be included in the Constants table. They carry no independent meaning and their presence in the table would be misleading.
 
@@ -204,7 +189,7 @@ When one of these aliased names would appear elsewhere in the documentation (e.g
 - ✓ `ConstaNetHeadder.Type`
 - ✗ `MessageType`
 
-#### 3.11 Signals
+#### 2.11 Signals
 
 Each signal gets its own `###` heading:
 
@@ -217,7 +202,7 @@ Description of when this signal is emitted and what the argument contains.
 
 If a signal has no arguments, write `*Args:* null`.
 
-#### 3.12 Inner Classes
+#### 2.12 Inner Classes
 
 Inner classes are documented as a `##` section within the same file. They follow the same structure as the top-level class, with two differences: the metadata line uses `*Defined in:*` with no link (the file link is already present in the outer class header), and member variables use `####` headings grouped under a `### Member Variables` heading.
 
@@ -247,9 +232,9 @@ Description.
 ...
 ```
 
-#### 3.13 Untyped Parameters and Missing Defaults
+#### 2.13 Untyped Parameters and Missing Defaults
 
-GDScript allows untyped parameters and properties. When a parameter or return type is not explicitly declared in the source, use `Variant` as the type. When a default value is not explicitly specified, omit the `= default` portion entirely — do not guess or infer a value.
+GDScript allows untyped parameters and properties. When a parameter or return type is not explicitly declared in the source, use `Variant` as the type. When a default value is not explicitly specified, omit the `= default` portion entirely.
 
 ```markdown
 *Args:*
@@ -257,7 +242,7 @@ GDScript allows untyped parameters and properties. When a parameter or return ty
 - `String: p_name = ""`    # type and default both declared
 ```
 
-#### 3.14 Code Examples
+#### 2.14 Code Examples
 
 Use fenced code blocks with the appropriate language tag:
 
@@ -270,7 +255,7 @@ Use fenced code blocks with the appropriate language tag:
 constellation.start_node()
 ```
 
-#### 3.15 Cross-References
+#### 2.15 Cross-References
 
 When referencing another documented method, class, or section within the same repo, use a Markdown link anchored to the heading:
 
@@ -281,74 +266,22 @@ When referencing another documented method, class, or section within the same re
 
 Use backticks inside the link label for any identifier (method, class, variable name).
 
-#### 3.16 Horizontal Rules
+#### 2.16 Horizontal Rules
 
 Use `---` to separate major sections. Do not use `---` between individual method entries within a section — let headings provide the visual separation.
 
 ---
 
-### 4. Tone & Language
+### 3. Tone & Language
 
 - Use **present tense** throughout. "Returns the local node." not "Will return the local node."
 - Use **active voice**. "Emits `node_found`." not "`node_found` is emitted."
 - Be **direct**. Start method descriptions with a verb. "Starts the network stack." not "This method is used to start the network stack."
 - Use **"the local node"**, **"the session"**, **"the network handler"** as definite references — not "a node" or "some session" when referring to the specific object the class manages.
-- Avoid filler phrases: "Note that", "It is important to", "Please be aware", "Simply", "Just".
 - Avoid anthropomorphising the code: "the engine knows", "the handler thinks". Prefer "the handler tracks", "the engine stores".
 - Spell out abbreviations on first use within a section if they are not universally standard. (`TCP`, `UDP`, `UUID`, `IP` are fine without expansion.)
-- Use **Oxford commas**.
 - Use **sentence case** for description text. Use the **exact capitalisation of identifiers** when referring to them in backticks.
 
----
-
-### 5. Accuracy Rules
-
-These are non-negotiable for both human authors and AI models:
-
-- **Never infer undocumented behaviour.** If the code does not clearly show that a method does something, do not document it as doing that thing.
-- **Never document private methods,** with the sole exception of `_init`. Any other method or variable prefixed with `_` is internal — do not include it in output documentation, even if it is interesting or complex.
-- **Always use `Variant` for undeclared types.** If a parameter, return type, or property has no explicit type annotation in the source, document its type as `Variant`. Do not guess.
-- **Never fabricate default values.** If a default value is not explicitly present in the source signature, omit the `= default` portion entirely.
-- **Never copy error strings or internal log messages** as documentation content.
-- When in doubt about what a method does, document only what is provably true from the source. A shorter, accurate description is always preferable to a longer, speculative one.
-
----
-
-### 6. AI Model–Specific Instructions
-
-When generating documentation from a source file, follow this process in order:
-
-1. **Read the entire file** before writing any output. Do not begin documenting after reading only part of the file.
-2. **Identify the class name, parent, and file path** for the header.
-3. **List all public identifiers** (no `_` prefix): signals, constants, enums, member variables, methods, inner classes. Also include `_init`.
-4. **Discard all other private identifiers** (`_` prefix, excluding `_init`). Do not reference them anywhere in the output, even parenthetically.
-5. **Filter enum alias constants.** Any constant defined as `const X: SomeClass.Enum = SomeClass.Enum` is an alias and must be excluded from the Constants table. When that name would appear in descriptions, replace it with the fully qualified original (e.g. `ConstaNetHeadder.Type`, not `MessageType`).
-6. **Always document `_init`**, even if it takes no arguments. Place it as the first entry under `## Public API`. Use `*Args:* null` if there are no parameters. **Exception: if the class defines `_static_init` instead of `_init`, it is a static class — do not add a `_init` entry at all.**
-7. **For each public method and `_init`**, determine: what it does, what arguments it takes (names, types, defaults), what it returns, and any side effects or error conditions visible from the source.
-8. **Use `Variant` for any parameter, return type, or property with no explicit type annotation** in the source. Do not infer or assume a type.
-9. **Omit default values** for any parameter that does not have one explicitly stated in the source signature.
-10. **Document all enums** under `## Enums`, each as a `###` subsection with a value table. Integer values must be taken from the source exactly.
-11. **Document all public member variables and static variables** under `## Member Variables`, each as a `###` entry with `*DataType:*`, `*Default:*` (if explicitly set in source), and a description. Omit `*Default:*` if no default is set. Place this section directly before `## Public API`.
-12. **Document all `_settings` registrations** under `## SettingsManager Entries` as a single table. Identify the EntryType from the registration method: `register_setting` → `SETTING`, `register_control` → `CONTROL`, `register_status` → `STATUS`.
-12. **Write each section in the order defined in the template below.** Do not reorder sections.
-13. **Do not pad output.** If a section has no content (e.g., no signals), omit the section header entirely.
-14. **Validate against the rules** in sections 2–5 before finalising output.
-
-#### When to Ask Questions
-
-If anything in the source code is ambiguous — a method whose purpose cannot be determined from its name, body, and doc comment alone — **stop and ask before documenting it**. Do not guess. Do not write a vague description to fill the space.
-
-Specifically, ask when:
-
-- A method's behaviour depends on external state or systems not visible in the file
-- A method name is unclear or could reasonably mean more than one thing
-- A parameter's role or expected values are not inferable from its name and type alone
-- A return value's meaning is not obvious (e.g. a `bool` or `int` with no doc comment)
-- An inner class or constant has a name that is not self-explanatory
-
-When asking, be specific. Quote the method signature and state exactly what is unclear. Do not ask about things that are clearly readable from the source.
-
----
 
 ## Part 2 — Template
 
@@ -382,14 +315,6 @@ When this signal is emitted.
 
 ---
 
-## Constants
-
-| Name | Type | Value | Description |
-|------|------|-------|-------------|
-| `CONSTANT_NAME` | `Type` | `value` | Description. |
-
----
-
 ## Enums
 
 ### `EnumName`
@@ -400,6 +325,14 @@ Description of what this enum represents and where it is used.
 |------|-------|-------------|
 | `VALUE_A` | `0` | Description. |
 | `VALUE_B` | `1` | Description. |
+
+---
+
+## Constants
+
+| Name | Type | Value | Description |
+|------|------|-------|-------------|
+| `CONSTANT_NAME` | `Type` | `value` | Description. |
 
 ---
 
