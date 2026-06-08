@@ -5,5 +5,6 @@ export default {
 	SpectrumClient: "SpectrumClient",
 	SpectrumServer: "SpectrumServer",
 	SpectrumLauncher: "SpectrumLauncher",
+	ConstellationManager: "ConstellationManager"
 	// how_to_docs: "How To Docs",
 };

@@ -23,6 +23,9 @@ The engine. Manages DMX output, the show file, and all internal state. The serve
 ### [SpectrumLauncher](development/SpectrumLauncher)
 The entry point for end users. Manages instances of **SpectrumClient** and **SpectrumServer**, starting, stopping, updating, and configuring them.
 
+### [ConstellationManager](development/ConstellationManager)
+A standalone application used to create and manage **Constellation** networks. It also serves as the test bed for developing **Constellation**
+
 ---
 
 ## Internal Modules
@@ -36,7 +39,7 @@ The networking layer for Spectrum. Constellation handles multicast discovery, no
 The abstract networking foundation that Constellation is built on. Defines the base classes for network nodes, sessions, and handlers. Allowing mutiple **NetworkHandlers** to run at the same time.
 
 ### [Axis](/development/modules/Axis)
-The input handling system. Axis manages MIDI, serial, HID, and network inputs and normalises them into a centralised control interface used by both SpectrumClient and SpectrumServer.
+The input handling system. Axis manages MIDI, serial, HID, and network inputs and normalises them into a centralised control interface used by both **SpectrumClient** and **SpectrumServer**.
 
 ### [Vertex](/development/modules/Vertex)
 The UI module. Vertex provides the shared theme, style definitions, and reusable components used across all Spectrum GUI applications.
@@ -48,6 +51,9 @@ A collection of shared utilities, base classes, and types used across the entire
 - **`Data`** — the data type enum used throughout the engine to describe and identify data values.
 - **`ChildManager`** — a utility class for managing parent-child object relationships through a abstracted interface.
 - **`Promise`** — an async result type used across the engine for operations that may resolve locally or from a remote network response.
+
+### [UIConstellationManager](/development/modules/UIConstellationManager)
+The UI interface to control the **Constellation** network engine. Stored as its own module as it reused in both **SpectrumClient** and **ConstellationManager**
 
 ---
 
