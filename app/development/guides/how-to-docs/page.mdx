@@ -2,28 +2,22 @@
 > This file defines the rules and template for writing API documentation across all GDScript codebases in the organisation.  
 
 
-## Part 1 — Rules
+## Part 1: Rules
 
 ### 1. What to Document
 
 Document the following:
 
-- **Class header** — class name, parent class, source file link, license, and a short description of the class's responsibility
-- **Signals** — all signals, their arguments, and when they are emitted
-- **Constants** — all public constants, in a table. **Exception: do not document constants that are defined purely as enum aliases from another class** (e.g. `const MessageType: ConstaNetHeadder.Type = ConstaNetHeadder.Type`). These add no information beyond what is already in the source class. Wherever such a constant would be referenced in the documentation, replace it with the fully qualified original type (e.g. use `ConstaNetHeadder.Type` not `MessageType`).
-- **Enums** — all public enums defined in the class, each in their own `###` subsection with a value table
-- **SettingsManager entries** — all settings registered via `_settings.register_setting()`, `_settings.register_control()`, or `_settings.register_status()`, in a single table
-- **`_init`** — always document `_init`, even if it takes no arguments. Use `*Args:* null` if there are none. **Exception: if the class is a static class that defines `_static_init` instead of `_init`, do not add a `_init` entry to the Public API.** Static classes are not instantiated and have no constructor to document.
-- **Public API** — all public methods and properties (those without a `_` prefix)
-- **Inner classes** — documented as their own section within the same file, following the same rules
-- **Command-line arguments** — if the class parses `OS.get_cmdline_args()`, document each flag
-- **Practical notes** — a short section at the end for gotchas, platform quirks, or non-obvious behaviour
-
-Do **not** document the following:
-
-- Private methods and variables (any identifier prefixed with `_`), **with the sole exception of `_init` in non-static classes**
-- GDScript lifecycle methods other than `_init` (`_process`, `_notification`, etc.) unless they form part of the public contract
-- Internal state variables that have no public accessor
+- **Class header**: class name, parent class, source file link, license, and a short description of the class's responsibility
+- **Signals**: all signals, their arguments, and when they are emitted
+- **Constants**: all public constants, in a table
+- **Enums**: all public enums defined in the class, each in their own `###` subsection with a value table
+- **SettingsManager entries**: all settings registered via `_settings.register_setting()`, `_settings.register_control()`, or `_settings.register_status()`, in a single table
+- **`_init`**: always document `_init`, even if it takes no arguments. Use `*Args:* null` if there are none.
+- **Public API**: all public methods and properties (ones without a `_` prefix)
+- **Inner classes**: documented as their own section within the same file, following the same rules
+- **Command-line arguments**: if the class parses `OS.get_cmdline_args()`, document each flag
+- **Practical notes**: a short section at the end for gotchas, platform quirks, or non-obvious behaviour
 
 ---
 
@@ -56,11 +50,10 @@ Short class description paragraph
 
 | Level | Used for |
 |-------|----------|
-| `#`   | Class name (one per file) |
+| `#`   | Class name |
 | `##`  | Top-level sections (Signals, Constants, Public API, inner class names) |
 | `###` | Individual methods, properties, signals, or inner class subsections |
 
-Never skip heading levels. Never use `####` or deeper for primary content — use bold text or tables instead.
 
 #### 2.3 Metadata Line
 
@@ -70,7 +63,7 @@ Immediately below the `#` heading, add an italic metadata line:
 *source:* [`FileName.gd`](url) *extends:* [`ParentClass.gd`](url)
 ```
 
-If there is no parent beyond `Object`, omit the `extends` portion.
+If the parent class is an internal godot class. Link to the relevant godot doc page instead.
 
 #### 2.4 Copyright Block
 
@@ -81,6 +74,8 @@ Immediately below the metadata line:
 Author Name — All rights reserved.  
 Licensed under GPLv3**
 ```
+
+The author(s) name and licence name must match what is in the file.
 
 #### 2.5 Method / Property Entries
 
@@ -96,13 +91,11 @@ Each public method or property entry follows this exact structure:
 *Returns:* `Type`
 
 Description paragraph. One or more sentences explaining what this method does, what it returns, and any important side effects or error conditions.
-
-Additional paragraphs if needed. Use bullet lists only when enumerating distinct behaviours, not for padding.
 ```
 
 If a method takes no arguments, write `*Args:* null`.  
 If a method returns nothing, write `*Returns:* void`.  
-If a method returns nothing meaningful (i.e., `void`), still include the line for consistency.
+If a method returns `void`, still include the line for consistency.
 
 #### 2.6 Constants Table
 
@@ -114,11 +107,9 @@ All constants in a class must be documented together in a single Markdown table:
 | `CONSTANT_NAME` | `Type` | `value` | What this constant represents. |
 ```
 
-Do not document each constant as a separate `###` heading.
-
 #### 2.7 Enums
 
-Each enum gets its own `###` heading under `## Enums`. Document every named value in a table with its integer value and a description. The integer values must match the source exactly — do not assume GDScript's default auto-increment if values are not explicit; look them up or ask.
+Each enum gets its own `###` heading under `## Enums`. Document every named value in a table with its integer value and a description.
 
 ```markdown
 ### `EnumName`
@@ -135,7 +126,7 @@ Description of what this enum represents and where it is used.
 
 If a class registers settings via its `_settings` (`SettingsManager`) member, document all of them together in a single table under `## SettingsManager Entries`. The table has four columns: Name, DataType, EntryType, and Description.
 
-**EntryType** reflects which registration method was used:
+**EntryType** defines which registration method was used:
 
 | Registration method | EntryType label |
 |---------------------|-----------------|
@@ -153,13 +144,9 @@ If a class registers settings via its `_settings` (`SettingsManager`) member, do
 | `EntryName` | `Data.Type.TYPE` | STATUS | Description. |
 ```
 
-- `SETTING` — a value that is not intended to change during normal runtime, but can be modified.
-- `CONTROL` — a value intended to be actively modified at runtime.
-- `STATUS` — read-only. Reflects internal state; cannot be set externally.
-
 #### 2.9 Member Variables
 
-Public member variables (those without a `_` prefix) and public static variables are documented under `## Member Variables`. Each variable gets its own `###` heading. Document the data type, default value if one is explicitly set in the source, and a description. Use cross-references where the type is documented elsewhere in the same file.
+Public member variables (those without a `_` prefix) and public static variables are documented under `## Member Variables`. Each variable gets its own `###` heading. Document the data type, default value if one is explicitly set in the source, and a description.
 
 ```markdown
 ## Member Variables
@@ -172,24 +159,15 @@ Description. Cross-reference to related types or sections where relevant. See [`
 
 ---
 
-### `another_variable`
+### static `another_variable`
 
 *DataType:* `Type`  
 Description. Omit `*Default:*` if no default is explicitly set in the source.
 ```
 
-If a variable has no explicitly set default value in the source, omit the `*Default:*` line entirely — do not guess or infer one.
+If a variable has no explicitly set default value in the source, remove the `*Default:*` line entirely.
 
-#### 2.10 Enum Alias Constants
-
-Constants that exist solely to alias an enum from another class (e.g. `const MessageType: ConstaNetHeadder.Type = ConstaNetHeadder.Type`) must **not** be included in the Constants table. They carry no independent meaning and their presence in the table would be misleading.
-
-When one of these aliased names would appear elsewhere in the documentation (e.g. in a method description), always use the fully qualified original reference instead:
-
-- ✓ `ConstaNetHeadder.Type`
-- ✗ `MessageType`
-
-#### 2.11 Signals
+#### 2.10 Signals
 
 Each signal gets its own `###` heading:
 
@@ -202,9 +180,9 @@ Description of when this signal is emitted and what the argument contains.
 
 If a signal has no arguments, write `*Args:* null`.
 
-#### 2.12 Inner Classes
+#### 2.11 Inner Classes
 
-Inner classes are documented as a `##` section within the same file. They follow the same structure as the top-level class, with two differences: the metadata line uses `*Defined in:*` with no link (the file link is already present in the outer class header), and member variables use `####` headings grouped under a `### Member Variables` heading.
+Inner classes are documented as a `##` section within the same file. They follow the same structure as the top-level class, with two differences: the metadata line uses `*Defined in:*` with no link, and member variables use `####` headings grouped under a `### Member Variables` heading.
 
 ```markdown
 ---
@@ -232,9 +210,9 @@ Description.
 ...
 ```
 
-#### 2.13 Untyped Parameters and Missing Defaults
+#### 2.12 Untyped Parameters and Missing Defaults
 
-GDScript allows untyped parameters and properties. When a parameter or return type is not explicitly declared in the source, use `Variant` as the type. When a default value is not explicitly specified, omit the `= default` portion entirely.
+GDScript allows untyped parameters and properties. When a parameter or return type is not explicitly declared in the source, use `Variant` as the type.
 
 ```markdown
 *Args:*
@@ -242,7 +220,7 @@ GDScript allows untyped parameters and properties. When a parameter or return ty
 - `String: p_name = ""`    # type and default both declared
 ```
 
-#### 2.14 Code Examples
+#### 2.13 Code Examples
 
 Use fenced code blocks with the appropriate language tag:
 
@@ -255,35 +233,19 @@ Use fenced code blocks with the appropriate language tag:
 constellation.start_node()
 ```
 
-#### 2.15 Cross-References
+#### 2.14 Cross-References
 
-When referencing another documented method, class, or section within the same repo, use a Markdown link anchored to the heading:
+When referencing another documented method, or class, or section within the same repo, use a link anchored to the heading, or file path:
 
 ```markdown
 [`method_name`](#method_name)
-[`OtherClass`](./OtherClass.md)
+[`OtherClass`](./OtherClass)
 ```
 
-Use backticks inside the link label for any identifier (method, class, variable name).
-
-#### 2.16 Horizontal Rules
-
-Use `---` to separate major sections. Do not use `---` between individual method entries within a section — let headings provide the visual separation.
-
----
-
-### 3. Tone & Language
-
-- Use **present tense** throughout. "Returns the local node." not "Will return the local node."
-- Use **active voice**. "Emits `node_found`." not "`node_found` is emitted."
-- Be **direct**. Start method descriptions with a verb. "Starts the network stack." not "This method is used to start the network stack."
-- Use **"the local node"**, **"the session"**, **"the network handler"** as definite references — not "a node" or "some session" when referring to the specific object the class manages.
-- Avoid anthropomorphising the code: "the engine knows", "the handler thinks". Prefer "the handler tracks", "the engine stores".
-- Spell out abbreviations on first use within a section if they are not universally standard. (`TCP`, `UDP`, `UUID`, `IP` are fine without expansion.)
-- Use **sentence case** for description text. Use the **exact capitalisation of identifiers** when referring to them in backticks.
+Use backticks inside the link label for any identifier.
 
 
-## Part 2 — Template
+## Part 2: Template
 
 Copy this template when starting a new documentation file. Replace all `PLACEHOLDER` values. Remove any section that does not apply.
 
