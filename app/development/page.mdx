@@ -1,12 +1,12 @@
 # Spectrum Development Documentation
 
-This is the internal technical documentation for the Spectrum engine and its accompanying modules. It is intended for **engine developers and plugin creators** — not end users. End-user documentation is maintained separately.
+This is the internal technical documentation for the Spectrum engine and its accompanying modules. It is intended for **engine developers and plugin creators** not end users. End user documentation can be found [here](/docs) 
 
 ---
 
 ## What is Spectrum?
 
-Spectrum is a framework for building control systems, with a primary focus on show control and DMX lighting. It is built on the Godot engine and follows a modular, networked architecture. The core product is a DMX lighting engine split across two separate programs — **SpectrumServer**, which runs the engine, and **SpectrumClient**, which provides the user interface. Both are managed and launched by **SpectrumLauncher**.
+Spectrum is a framework for building control systems, with a primary focus on show control and DMX lighting. It is built on the Godot engine and follows a modular, networked architecture. The core product is a DMX lighting engine split across two separate programs **SpectrumServer**, which runs the engine, and **SpectrumClient**, which provides the user interface. Both are managed and launched by **SpectrumLauncher**.
 
 The engine is built on top of a set of internal modules that handle networking, input, UI, and shared utilities. These modules are documented here alongside the core applications.
 
@@ -15,38 +15,38 @@ The engine is built on top of a set of internal modules that handle networking, 
 ## Applications
 
 ### [SpectrumClient](development/SpectrumClient)
-The user-facing interface for Spectrum. Connects to a running SpectrumServer instance and provides the operator with control over the lighting engine. All user interaction — patching, programming, playback — happens through the client.
+The user-facing interface for Spectrum. Connects to a running **SpectrumServer** instance and provides the operator with control over the lighting engine. All user interaction, patching, programming, and playback happens through the client.
 
 ### [SpectrumServer](development/SpectrumServer)
-The engine. Manages DMX output, the show file, and all internal state. The server can run headlessly on dedicated hardware or alongside the client on the same machine. It exposes its state to connected clients via the Constellation network layer.
+The engine. Manages DMX output, the show file, and all internal state. The server can run headlessly on dedicated hardware or alongside the client on the same machine. It exposes its state to connected clients via the **Constellation** network protocall.
 
 ### [SpectrumLauncher](development/SpectrumLauncher)
-The entry point for end users. Manages the lifecycle of SpectrumClient and SpectrumServer instances — starting, stopping, updating, and configuring them.
+The entry point for end users. Manages instances of **SpectrumClient** and **SpectrumServer**, starting, stopping, updating, and configuring them.
 
 ---
 
 ## Internal Modules
 
-These modules are not standalone products. They are shared libraries and subsystems used across the Spectrum applications.
+These modules are not standalone products. They are shared libraries used across the Spectrum applications.
 
 ### [Constellation](/development/modules/Constellation)
-The networking layer for Spectrum. Constellation handles multicast discovery, node and session management, TCP/UDP communication, and command routing between SpectrumClient and SpectrumServer instances. It is also available as a standalone module for use in third-party integrations and plugins that need to communicate with a Spectrum network.
+The networking layer for Spectrum. Constellation handles multicast discovery, node and session management, TCP/UDP communication, and command routing between **SpectrumClient** and **SpectrumServer** instances.
 
 ### [NetworkManager](/development/modules/NetworkManager)
-The abstract networking foundation that Constellation is built on. Defines the base classes for network nodes, sessions, and handlers. Most developers will interact with Constellation directly rather than NetworkManager.
+The abstract networking foundation that Constellation is built on. Defines the base classes for network nodes, sessions, and handlers. Allowing mutiple **NetworkHandlers** to run at the same time.
 
 ### [Axis](/development/modules/Axis)
-The input handling system. Axis manages MIDI, serial, HID, and network inputs and normalises them into a centralised control interface used by both SpectrumClient and SpectrumServer. Plugin developers building input-driven functionality should refer to the Axis documentation.
+The input handling system. Axis manages MIDI, serial, HID, and network inputs and normalises them into a centralised control interface used by both SpectrumClient and SpectrumServer.
 
 ### [Vertex](/development/modules/Vertex)
-The UI module. Vertex provides the shared theme, style definitions, and reusable components used across all Spectrum GUI applications. Developers building UI extensions or plugins that integrate with the Spectrum interface should build against Vertex components.
+The UI module. Vertex provides the shared theme, style definitions, and reusable components used across all Spectrum GUI applications.
 
 ### [Utils](/development/modules/Utils)
 A collection of shared utilities, base classes, and types used across the entire codebase. Key components include:
 
-- **`GlobalBaseClass`** — the structural interface all GBC-compatible classes must implement. Defines the required signals, methods, and serialization contract.
-- **`Data`** — the canonical type enum used throughout the engine to describe and identify data values.
-- **`ChildManager`** — a utility class for managing parent-child object relationships through a unified callable-based interface.
+- **`GlobalBaseClass`** — the shared interface all GBC-compatible classes must implement. 
+- **`Data`** — the data type enum used throughout the engine to describe and identify data values.
+- **`ChildManager`** — a utility class for managing parent-child object relationships through a abstracted interface.
 - **`Promise`** — an async result type used across the engine for operations that may resolve locally or from a remote network response.
 
 ---
