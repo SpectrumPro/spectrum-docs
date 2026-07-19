@@ -4,4 +4,5 @@ export default {
 	guide: "Guide",
 	panels: "Panels",
 	components: "Components",
+	wip: "Work-In-Progress"
 };

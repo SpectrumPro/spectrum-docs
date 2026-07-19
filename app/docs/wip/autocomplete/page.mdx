@@ -1,0 +1,35 @@
+# Autocomplete
+
+Autocomplete is a method of filling out data fields procedurally based on a set of rules set by the initial value.
+It can be used for things like filling out incremented numbered names for multiple items in a table, ie `Fixture1`, `Fixture2`, `Fixture3`...
+
+## Syntax:
+
+| Operators    | Usage |
+| -------- | ------- |
+| `/`  | Increment the number for each item    |
+| `\` | Decrement the number for each item     |
+
+
+### `/` and `\` Operators:
+`/` and `\` act almost exactly the same, except `\` being the reverse of `/`.
+
+These operators can be prefixed by either a number, or letter. That will form the basis of where the incrementation starts. If the number is zero padded, the padding will be kept across all items
+
+Both operators can have any number postfix after them to indicate the quantity to increment or decrement by each step. Defaulting to 1. If the postfix is a letter, this number will specify the number of letters to increment by
+
+#### Example Usage:
+**Input:** `Fixture1/`  
+**Output:** [`Fixture1`, `Fixture2`, `Fixture3`, ... ]
+
+**Input:** `Item0/10`  
+**Output:** [`Item0`, `Item10`, `Item20`, ... ]
+
+**Input:** `CircuitA/`  
+**Output:** [`CircuitA`, `CircuitB`, `CircuitC`, ... ]
+
+**Input:** `Universe001/`  
+**Output:** [`Universe001`, `Universe002`, `Universe003`, ... ]
+
+**Input:** `Channel5/`  
+**Output:** [`Channel5`, `Channel6`, `Channel7`, ... ]
